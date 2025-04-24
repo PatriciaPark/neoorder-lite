@@ -14,6 +14,8 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.RECEIVED;
 
+    public Order() {} // ✅ 기본 생성자
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
