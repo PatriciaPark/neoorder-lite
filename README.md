@@ -54,7 +54,7 @@ GET     /api/orders/status/RECEIVED   # 상태별 조회 | Filter by status
 
 ## 📁 Project Structure | 프로젝트 구조
 
-'''bash
+```bash
 neoorder-lite/
 ├── src/
 │   ├── main/
@@ -68,7 +68,7 @@ neoorder-lite/
 │   │       └── WEB-INF/jsp/
 ├── pom.xml
 ├── README.md
-'''
+```
 
 ---
 
