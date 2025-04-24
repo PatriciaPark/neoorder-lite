@@ -1,2 +1,5 @@
-C:\workspace\neoorder-lite\neoorder-lite\src\main\java\com\example\neoorder\controller\OrderController.java
-C:\workspace\neoorder-lite\neoorder-lite\src\main\java\com\example\neoorder\NeoorderLiteApplication.java
+C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\repository\OrderRepository.java
+C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\controller\OrderController.java
+C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\model\Order.java
+C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\model\OrderStatus.java
+C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\NeoorderLiteApplication.java
