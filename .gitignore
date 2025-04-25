@@ -1,0 +1,32 @@
+# 📦 Java / Maven 기본 무시 목록
+target/
+*.class
+*.log
+*.jar
+*.war
+
+# 🛠️ IDE 관련
+.idea/
+*.iml
+*.ipr
+*.iws
+*.sw?
+
+# 💻 운영체제 파일
+.DS_Store
+Thumbs.db
+
+# 🧪 테스트 출력물
+hs_err_pid*
+
+# 🔐 환경 설정 (선택)
+*.env
+.env.*
+
+# 🔧 VSCode (쓸 경우)
+.vscode/
+
+# 🧱 빌드 설정 캐시
+.mvn/
+build/
+logs/
