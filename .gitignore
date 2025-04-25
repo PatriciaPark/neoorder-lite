@@ -1,5 +1,5 @@
 # 📦 Java / Maven 기본 무시 목록
-target/
+# target/
 *.class
 *.log
 *.jar
