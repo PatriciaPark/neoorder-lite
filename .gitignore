@@ -1,9 +1,6 @@
 # 📦 Java / Maven 기본 무시 목록
-# target/
 *.class
 *.log
-*.jar
-*.war
 
 # 🛠️ IDE 관련
 .idea/
