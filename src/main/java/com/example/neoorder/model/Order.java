@@ -13,6 +13,9 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.RECEIVED;
+    
+    private String customerName;
+    
 
     public Order() {} // ✅ 기본 생성자
 
@@ -24,4 +27,8 @@ public class Order {
 
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
 }

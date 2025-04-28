@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>New Order</title>
+  <title>📝 New Order - NeoOrder Lite</title>
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
   <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
     <header class="mdl-layout__header">
@@ -15,53 +16,75 @@
       </div>
     </header>
 
-    <main class="mdl-layout__content" style="padding: 20px;">
-      <a href="/orders.html">
-        <button class="mdl-button mdl-js-button mdl-button--raised">
-        🔙 Back
-        </button>
-      </a>
+    <main class="mdl-layout__content" style="padding: 24px;">
+
+      <!-- 뒤로가기 버튼 -->
+      <div style="margin-bottom: 24px;">
+        <a href="/orders.html">
+          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" title="Back">
+            🔙
+          </button>
+        </a>
+      </div>
+
+      <!-- 폼 영역 -->
       <div class="mdl-grid">
-        <div class="mdl-cell mdl-cell--12-col">
-          <form id="order-form" class="mdl-shadow--2dp" style="padding: 20px; background: #fff; border-radius: 8px; max-width: 400px; margin: 0 auto;">
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-              <input class="mdl-textfield__input" type="text" id="item" required>
-              <label class="mdl-textfield__label" for="item">Enter item name</label>
+        <div class="mdl-cell mdl-cell--12-col" style="display: flex; justify-content: center;">
+          <form id="order-form" class="mdl-shadow--2dp" style="padding: 32px; background: #fff; border-radius: 12px; width: 100%; max-width: 400px;">
+
+            <!-- 상품명 입력 -->
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: 100%;">
+                <input class="mdl-textfield__input" type="text" id="item" required>
+                <label class="mdl-textfield__label" for="item">상품명 입력</label>
             </div>
-            <br>
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
-              Submit
-            </button>
+
+            <!-- 고객명 입력 추가 -->
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: 100%; margin-top: 16px;">
+                <input class="mdl-textfield__input" type="text" id="customerName" required>
+                <label class="mdl-textfield__label" for="customerName">고객명 입력</label>
+            </div>
+
+
+            <!-- 등록 버튼 -->
+            <div style="margin-top: 32px; text-align: center;">
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
+                등록하기
+              </button>
+            </div>
+
           </form>
         </div>
       </div>
+
     </main>
   </div>
 
   <script>
     document.getElementById('order-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const item = document.getElementById('item').value.trim();
-
-      if (!item) {
-        alert("상품명을 입력해주세요!");
-        return;
-      }
-
-      fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item })
-      })
-      .then(res => {
-        if (res.ok) {
-          window.location.href = '/orders.html';
-        } else {
-          throw new Error('등록 실패');
+        e.preventDefault();
+        const item = document.getElementById('item').value.trim();
+        const customerName = document.getElementById('customerName').value.trim();
+      
+        if (!item || !customerName) {
+          alert("상품명과 고객명을 모두 입력해주세요!");
+          return;
         }
-      })
-      .catch(err => alert('등록 실패: ' + err));
-    });
+      
+        fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item, customerName }) // 둘 다 보냄
+        })
+        .then(res => {
+          if (res.ok) {
+            window.location.href = '/orders.html'; // 이동
+          } else {
+            throw new Error('등록 실패');
+          }
+        })
+        .catch(err => alert('등록 실패: ' + err));
+      });
+      
   </script>
 </body>
 </html>
