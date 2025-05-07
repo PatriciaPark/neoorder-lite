@@ -1,11 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeoOrder Lite</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="style.css">
+    <script src="js/i18n.js"></script>
+    <script src="js/auth.js"></script>
 </head>
+
 <body>
-    <h1>🚀 Hello from NeoOrder Lite!</h1>
-    <p>This is a static HTML page served from /index.html</p>
+    <!-- 상단 네비게이션 -->
+    <nav class="main-nav">
+        <div class="logo">📦 NeoOrder Lite</div>
+        <ul class="menu">
+            <li class="active" data-i18n="nav.home">홈</li>
+            <li onclick="location.href='orders.html'" data-i18n="nav.orders">주문 목록</li>
+            <li onclick="handleProtectedLink('new-order.html')" data-i18n="order.create.title">새 주문</li>
+            <li onclick="handleProtectedLink('statistics.html')" data-i18n="nav.statistics">통계</li>
+        </ul>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <nav id="auth-nav"><!-- Auth UI will be inserted here by auth.js --></nav>
+            <button class="lang-btn" onclick="i18n.changeLang('ko')">🇰🇷</button>
+            <button class="lang-btn" onclick="i18n.changeLang('en')">🇺🇸</button>
+        </div>
+    </nav>
+    <main style="flex: 1;">
+        <!-- 메인 배너 -->
+        <section class="main-banner">
+            <div class="banner-text">
+                <span class="subtitle">The Smart Way to Manage Your Orders</span>
+                <h1>NeoOrder</h1>
+            </div>
+        </section>
+        <!-- 카드 영역 -->
+        <div class="card-container">
+            <div class="custom-card" onclick="location.href='orders.html'">
+                <div class="card-icon">📋</div>
+                <div class="card-title" data-i18n="index.card.orders.title">주문 관리</div>
+                <div class="card-description" data-i18n="index.card.orders.description">모든 주문을 조회, 필터링, 상태 변경 및 삭제할 수 있습니다.</div>
+            </div>
+            <div class="custom-card" onclick="handleProtectedLink('new-order.html')">
+                <div class="card-icon">➕</div>
+                <div class="card-title" data-i18n="index.card.new.title">주문 생성</div>
+                <div class="card-description" data-i18n="index.card.new.description">새로운 주문을 생성하고 관리할 수 있습니다.</div>
+            </div>
+            <div class="custom-card" onclick="handleProtectedLink('statistics.html')">
+                <div class="card-icon">📊</div>
+                <div class="card-title" data-i18n="index.card.stats.title">주문 통계</div>
+                <div class="card-description" data-i18n="index.card.stats.description">주문 데이터에 대한 통계 및 분석을 확인할 수 있습니다.</div>
+            </div>
+        </div>
+    </main>
+    <!-- 푸터 -->
+    <footer class="footer">
+        © 2025 YoungJee Park. All rights reserved.<br>
+        Built with Java & JavaScript | Hosted on Render
+    </footer>
+    <script>
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            i18n.updateTexts();
+        });
+        document.addEventListener('languageChanged', () => {
+            i18n.updateTexts();
+        });
+        function handleProtectedLink(url) {
+            if (auth.isLoggedIn()) {
+                window.location.href = url;
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
 </body>
 </html>

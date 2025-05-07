@@ -1,90 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>📝 New Order - NeoOrder Lite</title>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 생성 - NeoOrder</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="style.css">
+    <script src="js/i18n.js"></script>
+    <script src="js/auth.js"></script>
 </head>
-
 <body>
-  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-    <header class="mdl-layout__header">
-      <div class="mdl-layout__header-row">
-        <span class="mdl-layout-title">📝 New Order</span>
-      </div>
-    </header>
-
-    <main class="mdl-layout__content" style="padding: 24px;">
-
-      <!-- 뒤로가기 버튼 -->
-      <div style="margin-bottom: 24px;">
-        <a href="/orders.html">
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" title="Back">
-            🔙
-          </button>
-        </a>
-      </div>
-
-      <!-- 폼 영역 -->
-      <div class="mdl-grid">
-        <div class="mdl-cell mdl-cell--12-col" style="display: flex; justify-content: center;">
-          <form id="order-form" class="mdl-shadow--2dp" style="padding: 32px; background: #fff; border-radius: 12px; width: 100%; max-width: 400px;">
-
-            <!-- 상품명 입력 -->
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: 100%;">
-                <input class="mdl-textfield__input" type="text" id="item" required>
-                <label class="mdl-textfield__label" for="item">상품명 입력</label>
-            </div>
-
-            <!-- 고객명 입력 추가 -->
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: 100%; margin-top: 16px;">
-                <input class="mdl-textfield__input" type="text" id="customerName" required>
-                <label class="mdl-textfield__label" for="customerName">고객명 입력</label>
-            </div>
-
-
-            <!-- 등록 버튼 -->
-            <div style="margin-top: 32px; text-align: center;">
-              <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
-                등록하기
-              </button>
-            </div>
-
-          </form>
+    <!-- 상단 네비게이션 -->
+    <nav class="main-nav">
+        <div class="logo" onclick="location.href='index.html'">📦 NeoOrder Lite</div>
+        <ul class="menu">
+            <li onclick="location.href='index.html'" data-i18n="nav.home">홈</li>
+            <li onclick="location.href='orders.html'" data-i18n="nav.orders">주문 목록</li>
+            <li class="active" data-i18n="order.create.title">주문 생성</li>
+            <li onclick="handleProtectedLink('statistics.html')" data-i18n="nav.statistics">통계</li>
+        </ul>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <nav id="auth-nav"><!-- Auth UI will be inserted here by auth.js --></nav>
+            <button class="lang-btn" onclick="i18n.changeLang('ko')">🇰🇷</button>
+            <button class="lang-btn" onclick="i18n.changeLang('en')">🇺🇸</button>
         </div>
-      </div>
-
+    </nav>
+    <main style="flex: 1;">
+        <!-- 주문 생성 폼 -->
+        <div class="form-container">
+            <div class="form-title" data-i18n="order.create.title">주문 생성</div>
+            <form id="orderForm" onsubmit="createOrder(event)">
+                <div class="form-group">
+                    <label for="itemInput" data-i18n="order.item">상품</label>
+                    <input type="text" id="itemInput" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerNameInput" data-i18n="order.customer.name">고객명</label>
+                    <input type="text" id="customerNameInput" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" data-i18n="order.button.create">
+                        <span class="material-icons">add_circle</span>
+                        주문 생성
+                    </button>
+                    <a href="orders.html" class="button" data-i18n="button.cancel">취소</a>
+                </div>
+            </form>
+        </div>
     </main>
-  </div>
-
-  <script>
-    document.getElementById('order-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const item = document.getElementById('item').value.trim();
-        const customerName = document.getElementById('customerName').value.trim();
-      
-        if (!item || !customerName) {
-          alert("상품명과 고객명을 모두 입력해주세요!");
-          return;
+    <!-- 푸터 -->
+    <footer class="footer">
+        © 2025 YoungJee Park. All rights reserved.<br>
+        Built with Java & JavaScript | Hosted on Render
+    </footer>
+    <script>
+        async function createOrder(event) {
+            event.preventDefault();
+            const itemInput = document.getElementById('itemInput');
+            const customerNameInput = document.getElementById('customerNameInput');
+            const item = itemInput.value.trim();
+            const customerName = customerNameInput.value.trim();
+            if (!item || !customerName) {
+                return;
+            }
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        item: item,
+                        customerName: customerName
+                    }),
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    throw new Error(i18n.getTranslation('error.create.order'));
+                }
+                window.location.href = 'orders.html';
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
         }
-      
-        fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ item, customerName }) // 둘 다 보냄
-        })
-        .then(res => {
-          if (res.ok) {
-            window.location.href = '/orders.html'; // 이동
-          } else {
-            throw new Error('등록 실패');
-          }
-        })
-        .catch(err => alert('등록 실패: ' + err));
-      });
-      
-  </script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('itemInput').focus();
+        });
+        function handleProtectedLink(url) {
+            if (auth.isLoggedIn()) {
+                window.location.href = url;
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
 </body>
 </html>

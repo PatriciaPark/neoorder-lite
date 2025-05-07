@@ -1,161 +1,254 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>📦 NeoOrder Lite</title>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 관리 - NeoOrder</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="style.css">
+    <script src="js/i18n.js"></script>
+    <script src="js/auth.js"></script>
 </head>
-
 <body>
-  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-    <header class="mdl-layout__header">
-      <div class="mdl-layout__header-row">
-        <span class="mdl-layout-title">📦 NeoOrder Lite</span>
-      </div>
-    </header>
-
-    <main class="mdl-layout__content" style="padding: 24px;">
-      
-      <!-- 상단 버튼 -->
-      <div style="margin-bottom: 24px;">
-        <a href="/new-order.html">
-          <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored mdl-shadow--4dp" title="Add New Order">
-            ➕
-          </button>
-        </a>
-      </div>
-
-      <!-- 검색 폼 -->
-      <div class="mdl-grid">
-        <div class="mdl-cell mdl-cell--4-col">
-          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-            <input class="mdl-textfield__input" type="text" id="searchName">
-            <label class="mdl-textfield__label" for="searchName">고객명 검색</label>
-          </div>
+    <!-- 상단 네비게이션 -->
+    <nav class="main-nav">
+        <div class="logo" onclick="location.href='index.html'">📦 NeoOrder Lite</div>
+        <ul class="menu">
+            <li onclick="location.href='index.html'" data-i18n="nav.home">홈</li>
+            <li class="active" onclick="location.href='orders.html'" data-i18n="nav.orders">주문 목록</li>
+            <li onclick="handleProtectedLink('new-order.html')" data-i18n="order.create.title">새 주문</li>
+            <li onclick="handleProtectedLink('statistics.html')" data-i18n="nav.statistics">통계</li>
+        </ul>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <nav id="auth-nav"><!-- Auth UI will be inserted here by auth.js --></nav>
+            <button class="lang-btn" onclick="i18n.changeLang('ko')">🇰🇷</button>
+            <button class="lang-btn" onclick="i18n.changeLang('en')">🇺🇸</button>
         </div>
-
-        <div class="mdl-cell mdl-cell--4-col">
-          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-            <select class="mdl-textfield__input" id="statusFilter">
-              <option value="">전체</option>
-              <option value="RECEIVED">RECEIVED</option>
-              <option value="SHIPPING">SHIPPING</option>
-              <option value="COMPLETED">COMPLETED</option>
+    </nav>
+    <!-- 검색 영역 -->
+    <div class="search-bar">
+        <div>
+            <label for="searchItem" data-i18n="order.search.item">상품명</label>
+            <input type="text" id="searchItem">
+        </div>
+        <div>
+            <label for="searchCustomerName" data-i18n="order.search.customer">고객명</label>
+            <input type="text" id="searchCustomerName">
+        </div>
+        <div>
+            <label for="statusFilter" data-i18n="order.search.status">상태</label>
+            <select id="statusFilter">
+                <option value="" data-i18n="order.status.all">전체</option>
+                <option value="RECEIVED" data-i18n="order.status.received">접수됨</option>
+                <option value="SHIPPING" data-i18n="order.status.shipping">배송중</option>
+                <option value="COMPLETED" data-i18n="order.status.completed">완료</option>
+                <option value="CANCELLED" data-i18n="order.status.cancelled">취소됨</option>
             </select>
-            <label class="mdl-textfield__label" for="statusFilter">주문 상태</label>
-          </div>
         </div>
-
-        <div class="mdl-cell mdl-cell--4-col" style="display: flex; align-items: center;">
-          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="loadOrders()">
+        <button onclick="loadOrders(true)" data-i18n="order.button.search">
+            <span class="material-icons">search</span>
             검색
-          </button>
-        </div>
-      </div>
-
-      <!-- 주문 테이블 -->
-      <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width:100%; margin-top:20px;">
+        </button>
+        <a href="new-order.html" class="button" data-i18n="order.button.create">주문 생성</a>
+    </div>
+    <!-- 주문 테이블 -->
+    <table class="order-table">
         <thead>
-          <tr>
-            <th class="mdl-data-table__cell--non-numeric">ID</th>
-            <th class="mdl-data-table__cell--non-numeric">Item</th>
-            <th class="mdl-data-table__cell--non-numeric">Customer</th>
-            <th class="mdl-data-table__cell--non-numeric">Status</th>
-            <th class="mdl-data-table__cell--non-numeric">Actions</th>
-          </tr>
+            <tr>
+                <th data-i18n="order.item">상품</th>
+                <th data-i18n="order.customer.name">고객명</th>
+                <th data-i18n="order.status">상태</th>
+                <th data-i18n="order.created_at">주문일시</th>
+                <th data-i18n="order.actions">작업</th>
+            </tr>
         </thead>
-        <tbody id="orders-body"></tbody>
-      </table>
-
-      <!-- 페이지네이션 -->
-      <div class="center" style="margin-top: 30px; text-align: center;">
-        <button class="mdl-button mdl-js-button mdl-button--outlined" onclick="prevPage()">이전</button>
-        <span id="pageNumber" style="margin: 0 16px; font-weight: bold;">1</span>
-        <button class="mdl-button mdl-js-button mdl-button--outlined" onclick="nextPage()">다음</button>
-      </div>
-
-    </main>
-  </div>
-
-  <script>
-    let currentPage = 0;
-    const pageSize = 10;
-
-    // 주문 목록 불러오기
-    function loadOrders() {
-      const name = document.getElementById('searchName').value;
-      const status = document.getElementById('statusFilter').value;
-      let url = `/api/orders?page=${currentPage}&size=${pageSize}`;
-
-      if (name) url += `&customerName=${encodeURIComponent(name)}`;
-      if (status) url += `&status=${status}`;
-
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          renderOrders(data.content);
-          document.getElementById('pageNumber').textContent = currentPage + 1;
-        })
-        .catch(err => alert('주문 목록 불러오기 실패: ' + err));
-    }
-
-    // 주문 테이블 렌더링
-    function renderOrders(orders) {
-      const tbody = document.getElementById('orders-body');
-      tbody.innerHTML = '';
-
-      orders.forEach(order => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="mdl-data-table__cell--non-numeric">${order.id}</td>
-          <td class="mdl-data-table__cell--non-numeric">${order.item}</td>
-          <td class="mdl-data-table__cell--non-numeric">${order.customerName || '-'}</td>
-          <td class="mdl-data-table__cell--non-numeric">${order.status}</td>
-          <td class="mdl-data-table__cell--non-numeric">
-            <button class="mdl-button mdl-js-button mdl-button--raised" onclick="changeStatus(${order.id})" ${order.status === 'COMPLETED' ? 'disabled' : ''}>
-              Update
-            </button>
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" onclick="deleteOrder(${order.id})">
-              Delete
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // 주문 상태 변경
-    function changeStatus(id) {
-      fetch(`/api/orders/${id}/status`, { method: 'PUT' })
-        .then(() => loadOrders())
-        .catch(err => alert('상태 변경 실패: ' + err));
-    }
-
-    // 주문 삭제
-    function deleteOrder(id) {
-      fetch(`/api/orders/${id}`, { method: 'DELETE' })
-        .then(() => loadOrders())
-        .catch(err => alert('삭제 실패: ' + err));
-    }
-
-    // 페이지 이동
-    function prevPage() {
-      if (currentPage > 0) {
-        currentPage--;
-        loadOrders();
-      }
-    }
-
-    function nextPage() {
-      currentPage++;
-      loadOrders();
-    }
-
-    // 페이지 로딩 시 첫 주문 목록 가져오기
-    document.addEventListener('DOMContentLoaded', loadOrders);
-  </script>
-
+        <tbody id="orderTableBody">
+        </tbody>
+    </table>
+    <!-- 페이지네이션 -->
+    <div class="pagination-container">
+        <button class="pagination-btn" onclick="prevPage()" id="prevButton" disabled>
+            <i class="material-icons">chevron_left</i>
+        </button>
+        <span id="pageInfo" style="margin: 0 16px;"></span>
+        <button class="pagination-btn" onclick="nextPage()" id="nextButton" disabled>
+            <i class="material-icons">chevron_right</i>
+        </button>
+    </div>
+    <!-- 푸터 -->
+    <footer class="footer">
+        © 2025 YoungJee Park. All rights reserved.<br>
+        Built with Java & JavaScript | Hosted on Render
+    </footer>
+    <script>
+        // 페이지네이션 상태
+        let currentPage = 0;
+        const pageSize = 10;
+        let totalPages = 0;
+        function getStatusLabel(status) {
+            const key = 'order.status.' + status.toLowerCase();
+            return i18n.getTranslation(key);
+        }
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return new Intl.DateTimeFormat(i18n.getCurrentLang() === 'ko' ? 'ko-KR' : 'en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: i18n.getCurrentLang() !== 'ko'
+            }).format(date);
+        }
+        function createOrderRow(order) {
+            const isAdmin = auth.isLoggedIn();
+            let actionButtons = '';
+            if (isAdmin) {
+                const disabled = (order.status === 'COMPLETED' || order.status === 'CANCELLED') ? 'disabled' : '';
+                actionButtons = `
+                    <button class="action-btn" onclick="updateOrderStatus(${order.id})" title="${i18n.getTranslation('order.button.status')}" ${disabled}>
+                        <i class="material-icons">update</i>
+                    </button>
+                    <button class="action-btn" onclick="deleteOrder(${order.id})" title="${i18n.getTranslation('order.button.delete')}" ${disabled}>
+                        <i class="material-icons">delete</i>
+                    </button>
+                `;
+            }
+            return `
+                <tr>
+                    <td>${order.item}</td>
+                    <td>${order.customerName || '-'}</td>
+                    <td><span class="status-label status-${order.status.toLowerCase()}">${getStatusLabel(order.status)}</span></td>
+                    <td>${formatDate(order.createdAt)}</td>
+                    <td>${actionButtons}</td>
+                </tr>
+            `;
+        }
+        function updatePagination(totalElements) {
+            totalPages = Math.ceil(totalElements / pageSize);
+            document.getElementById('prevButton').disabled = currentPage === 0;
+            document.getElementById('nextButton').disabled = currentPage >= totalPages - 1;
+            let pageInfo = '';
+            if (totalPages > 0) {
+                pageInfo = i18n.getCurrentLang() === 'ko' ? 
+                    `페이지 ${currentPage + 1} / ${totalPages}` :
+                    `Page ${currentPage + 1} of ${totalPages}`;
+            } else {
+                pageInfo = i18n.getCurrentLang() === 'ko' ? 
+                    '페이지 없음' : 'No pages';
+            }
+            document.getElementById('pageInfo').textContent = pageInfo;
+        }
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadOrders();
+            }
+        }
+        function nextPage() {
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                loadOrders();
+            }
+        }
+        async function loadOrders(resetPage = false) {
+            if (resetPage) {
+                currentPage = 0;
+            }
+            try {
+                const searchItem = document.getElementById('searchItem').value;
+                const searchCustomerName = document.getElementById('searchCustomerName').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+                let url = `/api/orders?page=${currentPage}&size=${pageSize}`;
+                if (searchItem) url += `&item=${encodeURIComponent(searchItem)}`;
+                if (searchCustomerName) url += `&customerName=${encodeURIComponent(searchCustomerName)}`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    throw new Error(i18n.getTranslation('error.load.orders'));
+                }
+                const data = await response.json();
+                const orders = data.content || [];
+                const tableBody = document.getElementById('orderTableBody');
+                if (orders.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center;">${i18n.getTranslation('order.no.data')}</td>
+                        </tr>
+                    `;
+                } else {
+                    tableBody.innerHTML = orders.map(createOrderRow).join('');
+                }
+                updatePagination(data.totalElements);
+            } catch (error) {
+                console.error('Error:', error);
+                const tableBody = document.getElementById('orderTableBody');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #e74c3c;">${error.message}</td>
+                    </tr>
+                `;
+            }
+        }
+        async function updateOrderStatus(id) {
+            try {
+                const response = await fetch(`/api/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    throw new Error(i18n.getTranslation('error.update.status'));
+                }
+                await loadOrders();
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        }
+        async function deleteOrder(id) {
+            if (!confirm(i18n.getTranslation('alert.confirm.delete'))) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/orders/${id}/cancel`, {
+                    method: 'PUT',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || i18n.getTranslation('error.update.status'));
+                }
+                await loadOrders();
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            i18n.updateTexts();
+            loadOrders();
+        });
+        document.addEventListener('languageChanged', () => {
+            i18n.updateTexts();
+            loadOrders();
+        });
+        function handleProtectedLink(url) {
+            if (auth.isLoggedIn()) {
+                window.location.href = url;
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
 </body>
 </html>

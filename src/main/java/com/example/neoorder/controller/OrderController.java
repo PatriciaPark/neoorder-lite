@@ -31,16 +31,46 @@ public class OrderController {
     public Page<Order> getOrders(
         @RequestParam(required = false) String customerName,
         @RequestParam(required = false) String status,
+        @RequestParam(required = false) String item,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
         PageRequest pageable = PageRequest.of(page, size);
 
-        if (customerName != null && !customerName.isEmpty()) {
+        // 모든 조건이 있는 경우
+        if (item != null && !item.isEmpty() && customerName != null && !customerName.isEmpty() && status != null && !status.isEmpty()) {
+            return orderRepository.findByItemContainingIgnoreCaseAndCustomerNameContainingIgnoreCaseAndStatus(
+                item, customerName, OrderStatus.valueOf(status), pageable);
+        }
+        // 아이템명과 고객명만 있는 경우
+        else if (item != null && !item.isEmpty() && customerName != null && !customerName.isEmpty()) {
+            return orderRepository.findByItemContainingIgnoreCaseAndCustomerNameContainingIgnoreCase(
+                item, customerName, pageable);
+        }
+        // 아이템명과 상태만 있는 경우
+        else if (item != null && !item.isEmpty() && status != null && !status.isEmpty()) {
+            return orderRepository.findByItemContainingIgnoreCaseAndStatus(
+                item, OrderStatus.valueOf(status), pageable);
+        }
+        // 고객명과 상태만 있는 경우
+        else if (customerName != null && !customerName.isEmpty() && status != null && !status.isEmpty()) {
+            return orderRepository.findByCustomerNameContainingIgnoreCaseAndStatus(
+                customerName, OrderStatus.valueOf(status), pageable);
+        }
+        // 아이템명만 있는 경우
+        else if (item != null && !item.isEmpty()) {
+            return orderRepository.findByItemContainingIgnoreCase(item, pageable);
+        }
+        // 고객명만 있는 경우
+        else if (customerName != null && !customerName.isEmpty()) {
             return orderRepository.findByCustomerNameContainingIgnoreCase(customerName, pageable);
-        } else if (status != null && !status.isEmpty()) {
-            return orderRepository.findByStatus(status, pageable);
-        } else {
+        }
+        // 상태만 있는 경우
+        else if (status != null && !status.isEmpty()) {
+            return orderRepository.findByStatus(OrderStatus.valueOf(status), pageable);
+        }
+        // 검색 조건이 없는 경우
+        else {
             return orderRepository.findAll(pageable);
         }
     }
@@ -97,11 +127,71 @@ public class OrderController {
     }
 
     /**
+     * 주문 취소 (상태를 CANCELLED로 변경)
+     */
+    @PutMapping("/{id}/cancel")
+    public Order cancelOrder(@PathVariable Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        
+        if (order.getStatus() == OrderStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "완료된 주문은 취소할 수 없습니다.");
+        }
+        
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 취소된 주문입니다.");
+        }
+        
+        order.setStatus(OrderStatus.CANCELLED);
+        return orderRepository.save(order);
+    }
+
+    /**
      * 특정 상태별 주문 목록 조회
      */
     @GetMapping("/status/{status}")
     public List<Order> getOrdersByStatus(@PathVariable OrderStatus status) {
         return orderRepository.findByStatus(status);
+    }
+
+    /**
+     * 주문 수정
+     */
+    @PutMapping("/{id}")
+    public Order updateOrder(@PathVariable Long id, @RequestBody Order orderUpdate) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."));
+        
+        // 취소된 주문은 수정 불가
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "취소된 주문은 수정할 수 없습니다.");
+        }
+        
+        // 완료된 주문은 수정 불가
+        if (order.getStatus() == OrderStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "완료된 주문은 수정할 수 없습니다.");
+        }
+
+        order.setItem(orderUpdate.getItem());
+        order.setCustomerName(orderUpdate.getCustomerName());
+        
+        return orderRepository.save(order);
+    }
+
+    /**
+     * 주문 복제
+     */
+    @PostMapping("/{id}/duplicate")
+    public Order duplicateOrder(@PathVariable Long id) {
+        Order originalOrder = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다."));
+        
+        Order newOrder = new Order();
+        newOrder.setItem(originalOrder.getItem());
+        newOrder.setCustomerName(originalOrder.getCustomerName());
+        newOrder.setStatus(OrderStatus.RECEIVED); // 새 주문은 항상 RECEIVED 상태로 시작
+        
+        return orderRepository.save(newOrder);
     }
 
 }

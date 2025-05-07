@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 통계 - NeoOrder</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <!-- 상단 네비게이션 -->
+    <nav class="main-nav">
+        <div class="logo" onclick="location.href='index.html'">📦 NeoOrder Lite</div>
+        <ul class="menu">
+            <li onclick="location.href='index.html'" data-i18n="nav.home">홈</li>
+            <li onclick="location.href='orders.html'" data-i18n="nav.orders">주문 목록</li>
+            <li onclick="handleProtectedLink('new-order.html')" data-i18n="order.create.title">새 주문</li>
+            <li class="active" data-i18n="nav.statistics">통계</li>
+        </ul>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <nav id="auth-nav"></nav>
+            <button class="lang-btn" onclick="i18n.changeLang('ko')">🇰🇷</button>
+            <button class="lang-btn" onclick="i18n.changeLang('en')">🇺🇸</button>
+        </div>
+    </nav>
+    <div class="stats-container">
+        <!-- 검색/조회 바 -->
+        <div class="search-bar">
+            <div>
+                <label for="startDate" data-i18n="stats.date.start">시작일</label>
+                <input type="date" id="startDate">
+            </div>
+            <div>
+                <label for="endDate" data-i18n="stats.date.end">종료일</label>
+                <input type="date" id="endDate">
+            </div>
+            <button class="button-main" id="searchButton" onclick="loadStatistics()">
+                <span class="material-icons">search</span>
+                <span data-i18n="stats.button.search">조회</span>
+            </button>
+            <button class="button-main" onclick="exportToCSV()">
+                <span class="material-icons">file_download</span>
+                <span data-i18n="stats.button.csv">CSV 다운로드</span>
+            </button>
+            <button class="button-main" onclick="exportCharts()">
+                <span class="material-icons">image</span>
+                <span data-i18n="stats.button.charts">차트 저장</span>
+            </button>
+        </div>
+        <!-- 통계 카드 -->
+        <div class="stats-cards">
+            <div class="stats-card">
+                <div class="stats-card-title" data-i18n="stats.total.orders">총 주문</div>
+                <div class="stats-card-value" id="totalOrders">0</div>
+                <div class="stats-card-unit" data-i18n="stats.unit.count">건</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-card-title" data-i18n="stats.completion.rate">완료율</div>
+                <div class="stats-card-value" id="completionRate">0%</div>
+                <div class="stats-card-unit" data-i18n="stats.unit.percent">%</div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-card-title" data-i18n="stats.avg.time">평균 처리 시간</div>
+                <div class="stats-card-value" id="avgProcessingTime">0</div>
+                <div class="stats-card-unit" data-i18n="stats.unit.minutes">분</div>
+            </div>
+        </div>
+        <!-- 차트 영역 -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="stats-card-title" data-i18n="stats.status.distribution">주문 상태 분포</div>
+                <canvas id="statusChart" height="300"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="stats-card-title" data-i18n="stats.popular.items">인기 상품 TOP 5</div>
+                <canvas id="popularItemsChart" height="300"></canvas>
+            </div>
+        </div>
+        <!-- 데이터 없음 메시지 -->
+        <div id="noData" data-i18n="stats.no.data">
+            선택한 기간에 해당하는 데이터가 없습니다.
+        </div>
+    </div>
+    <!-- 푸터 -->
+    <footer class="footer">
+        © 2025 YoungJee Park. All rights reserved.<br>
+        Built with Java & JavaScript | Hosted on Render
+    </footer>
+    <script>
+        let statusChart = null;
+        let popularItemsChart = null;
+        let dateChangeTimer = null;
+
+        // 차트 레이블 업데이트
+        function updateChartLabels() {
+            if (statusChart && statusChart.data.labels) {
+                // 현재 데이터의 상태값만 추출하여 다시 레이블 생성
+                const currentStatuses = Object.keys(statusChart.data.datasets[0].data).map((_, index) => {
+                    const label = statusChart.data.labels[index];
+                    // 상태값 추출 (예: "접수됨" -> "RECEIVED")
+                    const status = Object.keys(translations.ko).find(key => 
+                        translations.ko[key] === label || translations.en[key] === label
+                    )?.replace('order.status.', '').toUpperCase() || label;
+                    return status;
+                });
+
+                // 추출된 상태값으로 새 레이블 생성
+                const newLabels = currentStatuses.map(status => getStatusLabel(status));
+                statusChart.data.labels = newLabels;
+                statusChart.update('none'); // 애니메이션 없이 업데이트
+            }
+        }
+
+        // 상태 레이블 변환 함수
+        function getStatusLabel(status) {
+            // 상태값을 정규화
+            const normalizedStatus = status.toLowerCase().replace(/^order\.status\./i, '');
+            return i18n.getTranslation('order.status.' + normalizedStatus);
+        }
+
+        // 언어 변경 이벤트 리스너
+        document.addEventListener('languageChanged', () => {
+            if (popularItemsChart) {
+                popularItemsChart.data.datasets[0].label = i18n.getCurrentLang() === 'ko' ? '주문 수' : 'Orders';
+                popularItemsChart.update();
+            }
+            updateChartLabels();
+        });
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getDefaultDateRange() {
+            const now = new Date();
+            const end = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), 1); // 현재 달의 1일
+            
+            return {
+                start: formatDate(start),
+                end: formatDate(end)
+            };
+        }
+
+        function initializeCharts() {
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const popularItemsCtx = document.getElementById('popularItemsChart').getContext('2d');
+
+            statusChart = new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#4CAF50', // Received (green)
+                            '#F44336', // Cancelled (red)
+                            '#2196F3', // Completed (blue)
+                            '#FFD600', // Shipping (yellow)
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            popularItemsChart = new Chart(popularItemsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: i18n.getCurrentLang() === 'ko' ? '주문 수' : 'Orders',
+                        data: [],
+                        backgroundColor: '#3f51b5'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 1,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(data) {
+            // 상태 분포 차트 업데이트
+            const statusData = data.statusStats;
+            const statusLabels = Object.keys(statusData).map(status => {
+                // 상태값에서 'order.status.' 접두사 제거
+                const cleanStatus = status.replace(/^order\.status\./i, '');
+                return getStatusLabel(cleanStatus);
+            });
+            
+            statusChart.data.labels = statusLabels;
+            statusChart.data.datasets[0].data = Object.values(statusData);
+            statusChart.update('active');
+
+            // 인기 상품 차트 업데이트
+            const popularItems = data.popularItems;
+            popularItemsChart.data.labels = popularItems.map(item => item.item);
+            popularItemsChart.data.datasets[0].data = popularItems.map(item => item.count);
+            popularItemsChart.data.datasets[0].label = i18n.getCurrentLang() === 'ko' ? '주문 수' : 'Orders';
+            // y축 min/max 강제 재설정 (Chart.js 내부 옵션 캐싱 문제 우회)
+            const maxValue = Math.max(...popularItemsChart.data.datasets[0].data, 0);
+            popularItemsChart.options.scales.y = {
+                beginAtZero: true,
+                min: 0,
+                max: maxValue > 0 ? maxValue + 1 : 1,
+                ticks: { stepSize: 1 }
+            };
+            popularItemsChart.update('active');
+        }
+
+        function updateStatistics(data) {
+            // 숫자 증가 애니메이션을 위한 함수
+            function animateValue(element, start, end, duration) {
+                const range = end - start;
+                const startTime = performance.now();
+                
+                function updateNumber(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    const value = Math.round(start + (range * progress));
+                    element.textContent = element.id === 'completionRate' ? value + '%' : value;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(updateNumber);
+                    }
+                }
+                
+                requestAnimationFrame(updateNumber);
+            }
+
+            // 각 통계 값에 애니메이션 적용
+            const totalOrdersElement = document.getElementById('totalOrders');
+            animateValue(totalOrdersElement, parseInt(totalOrdersElement.textContent), data.totalOrders, 1000);
+            
+            const completionRateElement = document.getElementById('completionRate');
+            const currentRate = parseInt(completionRateElement.textContent);
+            const completedCount = data.statusStats['COMPLETED'] || 0;
+            const newRate = data.totalOrders > 0 ? Math.round((completedCount / data.totalOrders) * 100) : 0;
+            animateValue(completionRateElement, currentRate, newRate, 1000);
+            
+            const avgProcessingTimeElement = document.getElementById('avgProcessingTime');
+            animateValue(avgProcessingTimeElement, parseInt(avgProcessingTimeElement.textContent), data.avgProcessingTime, 1000);
+        }
+
+        function handleDateChange() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (startDate && endDate) {
+                if (new Date(startDate) > new Date(endDate)) {
+                    alert(i18n.getTranslation('alert.date.invalid'));
+                    document.getElementById('startDate').value = endDate;
+                    return;
+                }
+
+                if (dateChangeTimer) {
+                    clearTimeout(dateChangeTimer);
+                }
+
+                dateChangeTimer = setTimeout(() => {
+                    loadStatistics();
+                }, 500);
+            }
+        }
+
+        async function loadStatistics() {
+            const loadingElement = document.getElementById('loading');
+            const contentElement = document.getElementById('statisticsContent');
+            const noDataElement = document.getElementById('noData');
+            const searchButton = document.getElementById('searchButton');
+
+            try {
+                // 로딩 상태 표시
+                if (loadingElement) loadingElement.style.display = 'block';
+                if (contentElement) contentElement.style.opacity = '0.5';
+                if (searchButton) searchButton.disabled = true;
+                if (noDataElement) noDataElement.style.display = 'none';
+
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+
+                // 날짜 형식을 ISO 형식으로 변환
+                const startDateTime = new Date(startDate + 'T00:00:00').toISOString();
+                const endDateTime = new Date(endDate + 'T23:59:59').toISOString();
+                
+                const response = await fetch(`/api/statistics?startDate=${startDateTime}&endDate=${endDateTime}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    throw new Error('통계 데이터를 불러오는데 실패했습니다.');
+                }
+                
+                const data = await response.json();
+
+                // 데이터가 없는 경우 처리
+                if (data.totalOrders === 0) {
+                    if (contentElement) contentElement.style.display = 'none';
+                    if (noDataElement) noDataElement.style.display = 'block';
+                } else {
+                    if (contentElement) contentElement.style.display = 'block';
+                    if (noDataElement) noDataElement.style.display = 'none';
+                    updateStatistics(data);
+                    updateCharts(data);
+                }
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                // 로딩 상태 해제
+                if (loadingElement) loadingElement.style.display = 'none';
+                if (contentElement) contentElement.style.opacity = '1';
+                if (searchButton) searchButton.disabled = false;
+            }
+        }
+
+        function exportToCSV() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            // CSV 헤더
+            let csvContent = '기간,' + startDate + ' ~ ' + endDate + '\n\n';
+            
+            // 기본 통계
+            csvContent += '기본 통계\n';
+            csvContent += '총 주문 수,' + document.getElementById('totalOrders').textContent + '건\n';
+            csvContent += '완료율,' + document.getElementById('completionRate').textContent + '\n';
+            csvContent += '평균 처리 시간,' + document.getElementById('avgProcessingTime').textContent + '분\n\n';
+            
+            // 주문 상태 분포
+            csvContent += '주문 상태 분포\n';
+            const statusLabels = statusChart.data.labels;
+            const statusData = statusChart.data.datasets[0].data;
+            statusLabels.forEach((label, index) => {
+                csvContent += label + ',' + statusData[index] + '건\n';
+            });
+            csvContent += '\n';
+            
+            // 인기 상품
+            csvContent += '인기 상품 TOP 5\n';
+            const itemLabels = popularItemsChart.data.labels;
+            const itemData = popularItemsChart.data.datasets[0].data;
+            itemLabels.forEach((label, index) => {
+                csvContent += label + ',' + itemData[index] + '건\n';
+            });
+            
+            // CSV 파일 다운로드
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `주문통계_${startDate}_${endDate}.csv`;
+            link.click();
+        }
+
+        function exportCharts() {
+            // 상태 분포 차트 저장
+            const statusLink = document.createElement('a');
+            statusLink.download = '주문상태분포.png';
+            statusLink.href = document.getElementById('statusChart').toDataURL('image/png');
+            statusLink.click();
+
+            // 잠시 대기 후 인기 상품 차트 저장
+            setTimeout(() => {
+                const itemsLink = document.createElement('a');
+                itemsLink.download = '인기상품.png';
+                itemsLink.href = document.getElementById('popularItemsChart').toDataURL('image/png');
+                itemsLink.click();
+            }, 500);
+        }
+
+        // 한글 깨짐 방지를 위한 폰트 로드 대기
+        document.fonts.ready.then(() => {
+            // 차트 옵션에 폰트 설정 추가
+            const defaultOptions = {
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                family: "'Roboto', 'Noto Sans KR', sans-serif"
+                            }
+                        }
+                    }
+                }
+            };
+
+            // 기존 차트 옵션과 병합
+            if (statusChart) {
+                statusChart.options = { ...statusChart.options, ...defaultOptions };
+                statusChart.update('none');
+            }
+            if (popularItemsChart) {
+                popularItemsChart.options = { ...popularItemsChart.options, ...defaultOptions };
+                popularItemsChart.update('none');
+            }
+        });
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCharts();
+            
+            // 기본 날짜 범위 설정
+            const defaultRange = getDefaultDateRange();
+            document.getElementById('startDate').value = defaultRange.start;
+            document.getElementById('endDate').value = defaultRange.end;
+            
+            // 초기 데이터 로드
+            loadStatistics();
+
+            // 날짜 입력 필드에 최대값 설정 (오늘까지만 선택 가능)
+            const today = formatDate(new Date());
+            document.getElementById('startDate').max = today;
+            document.getElementById('endDate').max = today;
+        });
+
+        function handleProtectedLink(url) {
+            if (typeof auth !== 'undefined' && auth.isLoggedIn && auth.isLoggedIn()) {
+                window.location.href = url;
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html> 
