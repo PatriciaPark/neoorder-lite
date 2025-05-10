@@ -39,12 +39,12 @@ const auth = {
             authNav.innerHTML = `
                 <div class="user-menu">
                     <span class="user-name">${user.username}</span>
-                    <button onclick="auth.logout()" data-i18n="auth.logout">로그아웃</button>
+                    <button class="menu-btn" onclick="auth.logout()" data-i18n="auth.logout">로그아웃</button>
                 </div>
             `;
         } else {
             authNav.innerHTML = `
-                <button onclick="location.href='login.html'" data-i18n="auth.login">로그인</button>
+                <button class="menu-btn" onclick="location.href='login.html'" data-i18n="auth.login">로그인</button>
             `;
         }
         i18n.updateTexts();
@@ -71,16 +71,26 @@ const auth = {
             }
 
             const data = await response.json();
+            let userObj = null;
+            if (data.user && data.user.username) {
+                userObj = data.user;
+                this.currentUser = data.user.username;
+            } else if (data.username) {
+                userObj = { username: data.username };
+                this.currentUser = data.username;
+            } else {
+                alert('서버 응답에 사용자 정보가 없습니다.');
+                return;
+            }
             localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            this.currentUser = data.user.username;
-            
+            localStorage.setItem('user', JSON.stringify(userObj));
+
             // Update UI and redirect
             this.updateUI();
             window.location.href = 'index.html';
         } catch (error) {
             console.error('Login error:', error);
-            throw error;
+            alert('로그인에 실패했습니다. 아이디/비밀번호를 확인하세요.');
         }
     },
 
