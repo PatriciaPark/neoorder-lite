@@ -32,7 +32,17 @@
             <form id="orderForm" onsubmit="createOrder(event)">
                 <div class="form-group">
                     <label for="itemInput" data-i18n="order.item">상품</label>
-                    <input type="text" id="itemInput" required>
+                    <select id="itemInput" required>
+                        <option value="" id="itemPlaceholder">-- 상품을 선택하세요 --</option>
+                        <option>SAP ERP License Renewal</option>
+                        <option>AWS Cloud Usage Expansion</option>
+                        <option>Microsoft Azure Resource Expansion</option>
+                        <option>GAM Solution Module Addition</option>
+                        <option>WRMS Rental Solution User Addition</option>
+                        <option>Salesforce Integration Request</option>
+                        <option>S/4HANA Upgrade</option>
+                        <option>EWM Logistics System Customization</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="customerNameInput" data-i18n="order.customer.name">고객명</label>
@@ -50,8 +60,19 @@
     </main>
     <!-- 푸터 -->
     <footer class="footer">
-        © 2025 YoungJee Park. All rights reserved.<br>
-        Built with Java & JavaScript | Hosted on Render
+        <div class="footer-content">
+            <div class="copyright">© 2025 YoungJee Park. All rights reserved.</div>
+            <div class="tech-stack">
+                <span class="tech-item">Java Spring Boot</span>
+                <span class="tech-item">Vanilla JavaScript</span>
+                <span class="tech-item">Chart.js</span>
+                <span class="tech-item">Swagger UI</span>
+            </div>
+            <div class="hosting">
+                <i class="material-icons" style="font-size: 16px; vertical-align: middle;">cloud</i>
+                Hosted on Render
+            </div>
+        </div>
     </footer>
     <script>
         async function createOrder(event) {
@@ -91,7 +112,18 @@
         }
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('itemInput').focus();
+            updateItemPlaceholder();
         });
+        document.addEventListener('languageChanged', updateItemPlaceholder);
+        function updateItemPlaceholder() {
+            const placeholder = document.getElementById('itemPlaceholder');
+            if (!placeholder) return;
+            if (i18n.getCurrentLang() === 'en') {
+                placeholder.textContent = '-- Please select an item --';
+            } else {
+                placeholder.textContent = '-- 상품을 선택하세요 --';
+            }
+        }
         function handleProtectedLink(url) {
             if (auth.isLoggedIn()) {
                 window.location.href = url;

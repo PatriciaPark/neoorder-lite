@@ -40,7 +40,14 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        
+
+        <!-- Swagger : OpenAPI 설정 -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
         <!-- 테스트 의존성 추가 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

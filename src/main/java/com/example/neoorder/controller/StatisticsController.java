@@ -8,6 +8,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -24,6 +31,19 @@ public class StatisticsController {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Operation(
+        summary = "주문 통계 조회 (Get Order Statistics)",
+        description = "주문 통계를 조회합니다. 기간(시작/종료일) 지정 가능.\nGet order statistics. You can specify start/end date.",
+        parameters = {
+            @Parameter(name = "startDate", description = "시작일 (ISO-8601, Start date)", example = "2024-06-01T00:00:00"),
+            @Parameter(name = "endDate", description = "종료일 (ISO-8601, End date)", example = "2024-06-30T23:59:59")
+        }
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "통계 조회 성공 (Success)",
+            content = @Content(mediaType = "application/json",
+                examples = @ExampleObject(value = "{\n  \"totalOrders\": 10,\n  \"statusStats\": {\n    \"RECEIVED\": 2,\n    \"SHIPPING\": 3,\n    \"COMPLETED\": 4,\n    \"CANCELLED\": 1\n  },\n  \"popularItems\": [\n    {\"item\": \"노트북\", \"count\": 5},\n    {\"item\": \"모니터\", \"count\": 3}\n  ],\n  \"avgProcessingTime\": 120\n}")))
+    })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getStatistics(
             @RequestParam(required = false) String startDate,
@@ -62,8 +82,9 @@ public class StatisticsController {
                 statusStats.put(status, statusStats.get(status) + 1);
             });
 
-            // 인기 상품 TOP 5 계산
+            // 인기 상품 TOP 5 계산 (CANCELLED 상태 제외)
             List<Map<String, Object>> popularItems = orders.stream()
+                    .filter(order -> order.getStatus() != OrderStatus.CANCELLED)
                     .collect(Collectors.groupingBy(Order::getItem, Collectors.counting()))
                     .entrySet().stream()
                     .sorted(Map.Entry.<String, Long>comparingByValue().reversed())

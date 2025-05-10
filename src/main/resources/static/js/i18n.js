@@ -69,7 +69,8 @@ const translations = {
         'index.card.new.title': '주문 생성',
         'index.card.new.description': '새로운 주문을 생성하고 관리할 수 있습니다.',
         'index.card.stats.title': '주문 통계',
-        'index.card.stats.description': '주문 데이터에 대한 통계 및 분석을 확인할 수 있습니다.'
+        'index.card.stats.description': '주문 데이터에 대한 통계 및 분석을 확인할 수 있습니다.',
+        'nav.swagger': 'API 문서'
     },
     en: {
         'menu.orders': 'Orders',
@@ -140,7 +141,8 @@ const translations = {
         'index.card.new.title': 'Create Order',
         'index.card.new.description': 'Create and manage new orders.',
         'index.card.stats.title': 'Order Statistics',
-        'index.card.stats.description': 'View statistics and analysis of order data.'
+        'index.card.stats.description': 'View statistics and analysis of order data.',
+        'nav.swagger': 'API Documentation'
     }
 };
 

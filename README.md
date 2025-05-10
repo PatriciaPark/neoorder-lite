@@ -24,6 +24,8 @@ Designed for API testing, frontend integration, portfolio demonstrations, and mo
 - H2 In-Memory Database
 - Maven
 - HTML + JavaScript (for frontend)
+- Chart.js (for statistics visualization)
+- Swagger UI (for API documentation)
 - Render (for cloud deployment)
 
 ---
@@ -34,7 +36,10 @@ Designed for API testing, frontend integration, portfolio demonstrations, and mo
 - ➕ 주문 등록 | Add new order (via HTML form)
 - 🔁 상태 변경 (RECEIVED → SHIPPING → COMPLETED) | Status update
 - ❌ 주문 삭제 | Delete order
+- 📊 주문 통계 및 차트 | Order statistics and charts (`/statistics.html`)
 - 🌐 REST API 제공 | REST endpoints under `/api/orders`
+- 📚 Swagger UI 문서 | API documentation (`/swagger-ui/index.html`)
+- 🌍 다국어 지원 (한국어/영어) | Multi-language support (Korean/English)
 
 ---
 
@@ -47,6 +52,8 @@ GET     /api/orders/status/{status} # 상태별 조회
 POST    /api/orders                 # 주문 등록
 PUT     /api/orders/{id}/status     # 상태 변경
 DELETE  /api/orders/{id}            # 주문 삭제
+GET     /api/statistics            # 주문 통계 조회
+GET     /swagger-ui/index.html     # API 문서
 ```
 
 ---
@@ -63,7 +70,13 @@ neoorder-lite/
 │       │   └── repository/
 │       ├── resources/
 │       │   └── static/
-│       │       └── orders.html
+│       │       ├── index.html
+│       │       ├── orders.html
+│       │       ├── statistics.html
+│       │       ├── js/
+│       │       │   ├── i18n.js
+│       │       │   └── auth.js
+│       │       └── style.css
 │       └── application.properties
 ├── pom.xml
 ├── README.md
@@ -79,6 +92,9 @@ This project was created to demonstrate the following skills:
 - RESTful API 설계 및 응답 처리 | Building and consuming RESTful APIs effectively
 - 상태값(enum)을 활용한 로직 제어 및 상태 전이(State Pattern) | Using Java enums to control order status transitions
 - Spring Data JPA + H2 DB를 통한 간단한 데이터 관리 | Lightweight data persistence with JPA and in-memory H2
+- Chart.js를 활용한 데이터 시각화 | Data visualization using Chart.js
+- Swagger UI를 통한 API 문서화 | API documentation with Swagger UI
+- 다국어 지원 구현 | Multi-language support implementation
 - 클라우드 환경(Render)에 직접 배포해 본 경험 | Real-world deployment experience with Render
 - 테스트 및 시연을 고려한 완성형 미니 백엔드 프로젝트 구현 | Complete backend project ready for demo and portfolio presentation
 

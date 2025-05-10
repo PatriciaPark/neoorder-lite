@@ -49,7 +49,7 @@
             <span class="material-icons">search</span>
             검색
         </button>
-        <a href="new-order.html" class="button" data-i18n="order.button.create">주문 생성</a>
+        <a href="new-order.html" class="button" id="createOrderBtn" data-i18n="order.button.create">주문 생성</a>
     </div>
     <!-- 주문 테이블 -->
     <table class="order-table">
@@ -77,8 +77,19 @@
     </div>
     <!-- 푸터 -->
     <footer class="footer">
-        © 2025 YoungJee Park. All rights reserved.<br>
-        Built with Java & JavaScript | Hosted on Render
+        <div class="footer-content">
+            <div class="copyright">© 2025 YoungJee Park. All rights reserved.</div>
+            <div class="tech-stack">
+                <span class="tech-item">Java Spring Boot</span>
+                <span class="tech-item">Vanilla JavaScript</span>
+                <span class="tech-item">Chart.js</span>
+                <span class="tech-item">Swagger UI</span>
+            </div>
+            <div class="hosting">
+                <i class="material-icons" style="font-size: 16px; vertical-align: middle;">cloud</i>
+                Hosted on Render
+            </div>
+        </div>
     </footer>
     <script>
         // 페이지네이션 상태
@@ -234,10 +245,16 @@
                 alert(error.message);
             }
         }
+        function updateCreateOrderBtn() {
+            const btn = document.getElementById('createOrderBtn');
+            if (btn) btn.style.display = auth.isLoggedIn() ? '' : 'none';
+        }
         document.addEventListener('DOMContentLoaded', () => {
             i18n.updateTexts();
             loadOrders();
+            updateCreateOrderBtn();
         });
+        document.addEventListener('authStateChanged', updateCreateOrderBtn);
         document.addEventListener('languageChanged', () => {
             i18n.updateTexts();
             loadOrders();

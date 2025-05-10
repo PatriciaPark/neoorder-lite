@@ -2,23 +2,34 @@
 DELETE FROM orders;
 
 -- 더미 주문 데이터 추가 (20개)
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('노트북', '김철수', 'RECEIVED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('스마트폰', '이영희', 'SHIPPING', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('태블릿', '박지민', 'COMPLETED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('헤드폰', '최민수', 'RECEIVED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('스마트워치', '정소연', 'SHIPPING', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('블루투스 스피커', '강동원', 'COMPLETED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('무선 이어폰', '송중기', 'RECEIVED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('게이밍 마우스', '전지현', 'SHIPPING', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('게이밍 키보드', '이민호', 'COMPLETED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('모니터', '김수진', 'RECEIVED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('프린터', '박보검', 'SHIPPING', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('외장 하드디스크', '이종석', 'COMPLETED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('웹캠', '김고은', 'RECEIVED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('마이크', '조인성', 'SHIPPING', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('스캐너', '한지민', 'COMPLETED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('라우터', '공유', 'RECEIVED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('전기 자전거', '이준기', 'SHIPPING', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('스마트 홈 허브', '신민아', 'COMPLETED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('로봇 청소기', '유아인', 'RECEIVED', CURRENT_TIMESTAMP);
-INSERT INTO orders (item, customer_name, status, created_at) VALUES ('드론', '김우빈', 'SHIPPING', CURRENT_TIMESTAMP); 
+-- Hanbit Electronics orders
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('SAP ERP License Renewal', 'Hanbit Electronics Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('S/4HANA Upgrade', 'Woojin Innotech Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '1' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('AWS Cloud Usage Expansion', 'Sejong Industries Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '2' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('GAM Solution Module Addition', 'Kwangmyung Tech Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '3' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Microsoft Azure Resource Expansion', 'Dongbang C&C Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '4' HOUR);
+
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('EWM Logistics System Customization', 'Daelim Logistics Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '5' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('WRMS Rental Solution User Addition', 'Haneul IT Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '6' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Salesforce Integration Request', 'Sungil Logistics Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '7' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('SAP ERP License Renewal', 'NextGen Systems Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '8' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Microsoft Azure Resource Expansion', 'Hanbit Electronics Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '9' HOUR);
+
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('S/4HANA Upgrade', 'Sejong Industries Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '10' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('AWS Cloud Usage Expansion', 'Kwangmyung Tech Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '11' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('GAM Solution Module Addition', 'Dongbang C&C Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '12' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('EWM Logistics System Customization', 'Daelim Logistics Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '13' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('WRMS Rental Solution User Addition', 'Haneul IT Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '14' HOUR);
+
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Salesforce Integration Request', 'Sungil Logistics Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '15' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('SAP ERP License Renewal', 'Woojin Innotech Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '16' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Microsoft Azure Resource Expansion', 'NextGen Systems Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '17' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('S/4HANA Upgrade', 'Hanbit Electronics Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '18' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('AWS Cloud Usage Expansion', 'Sejong Industries Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '19' HOUR);
+
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('GAM Solution Module Addition', 'Kwangmyung Tech Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '20' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('EWM Logistics System Customization', 'Dongbang C&C Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '21' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('WRMS Rental Solution User Addition', 'Daelim Logistics Co., Ltd.', 'RECEIVED', CURRENT_TIMESTAMP - INTERVAL '22' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Salesforce Integration Request', 'Haneul IT Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '23' HOUR);
+INSERT INTO orders (item, customer_name, status, created_at) VALUES ('SAP ERP License Renewal', 'Sungil Logistics Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '24' HOUR);
+

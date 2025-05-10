@@ -68,13 +68,15 @@ public class SecurityConfig {
                     "/index.html", 
                     "/login.html", 
                     "/orders.html",
-                    "/js/**", 
                     "/style.css",
+                    "/js/**", 
                     "/css/**", 
                     "/images/**", 
                     "/*.ico", 
                     "/favicon.ico",
-                    "/error"
+                    "/error",
+                    "/swagger-ui/**", 
+                    "/v3/api-docs/**"
                 ).permitAll()
                 // 인증 관련 API 접근 허용
                 .requestMatchers(
@@ -99,7 +101,10 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable());
+            .httpBasic(basic -> basic.disable())
+            .exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, authException) -> {
+                response.sendRedirect("/index.html");
+            }));
 
         logger.info("Security filter chain configured successfully");
         return http.build();

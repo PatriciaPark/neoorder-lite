@@ -17,8 +17,9 @@
         <ul class="menu">
             <li class="active" data-i18n="nav.home">홈</li>
             <li onclick="location.href='orders.html'" data-i18n="nav.orders">주문 목록</li>
-            <li onclick="handleProtectedLink('new-order.html')" data-i18n="order.create.title">새 주문</li>
+            <!-- <li onclick="handleProtectedLink('new-order.html')" data-i18n="order.create.title">새 주문</li> -->
             <li onclick="handleProtectedLink('statistics.html')" data-i18n="nav.statistics">통계</li>
+            <li id="swagger-link" style="display: none;" onclick="window.open('/swagger-ui/index.html', '_blank')" data-i18n="nav.swagger">API 문서</li>
         </ul>
         <div style="display: flex; align-items: center; gap: 8px;">
             <nav id="auth-nav"><!-- Auth UI will be inserted here by auth.js --></nav>
@@ -55,22 +56,47 @@
     </main>
     <!-- 푸터 -->
     <footer class="footer">
-        © 2025 YoungJee Park. All rights reserved.<br>
-        Built with Java & JavaScript | Hosted on Render
+        <div class="footer-content">
+            <div class="copyright">© 2025 YoungJee Park. All rights reserved.</div>
+            <div class="tech-stack">
+                <span class="tech-item">Java Spring Boot</span>
+                <span class="tech-item">Vanilla JavaScript</span>
+                <span class="tech-item">Chart.js</span>
+                <span class="tech-item">Swagger UI</span>
+            </div>
+            <div class="hosting">
+                <i class="material-icons" style="font-size: 16px; vertical-align: middle;">cloud</i>
+                Hosted on Render
+            </div>
+        </div>
     </footer>
     <script>
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', () => {
             i18n.updateTexts();
+            updateSwaggerLink();
         });
         document.addEventListener('languageChanged', () => {
             i18n.updateTexts();
+        });
+        document.addEventListener('authStateChanged', () => {
+            updateSwaggerLink();
         });
         function handleProtectedLink(url) {
             if (auth.isLoggedIn()) {
                 window.location.href = url;
             } else {
                 window.location.href = 'login.html';
+            }
+        }
+
+        // Swagger UI 링크 표시 여부 설정
+        function updateSwaggerLink() {
+            const swaggerLink = document.getElementById('swagger-link');
+            if (auth.isLoggedIn() && auth.isAdmin()) {
+                swaggerLink.style.display = 'block';
+            } else {
+                swaggerLink.style.display = 'none';
             }
         }
     </script>

@@ -14,6 +14,13 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.session.SessionRegistry;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +39,25 @@ public class AuthController {
         logger.info("AuthController initialized with AuthenticationManager: {}", authenticationManager);
     }
 
+    @Operation(
+        summary = "로그인 (Login)",
+        description = "사용자 로그인을 수행합니다.\nAuthenticate user and start session.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "로그인 정보 (Login credentials)",
+            required = true,
+            content = @Content(
+                schema = @Schema(example = "{\n  \"username\": \"testadmin\",\n  \"password\": \"testpass123\"\n}")
+            )
+        )
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "로그인 성공 (Success)",
+            content = @Content(mediaType = "application/json",
+                examples = @ExampleObject(value = "{\n  \"username\": \"testadmin\",\n  \"role\": \"ROLE_ADMIN\",\n  \"sessionId\": \"1234567890\",\n  \"authenticated\": true\n}"))),
+        @ApiResponse(responseCode = "401", description = "인증 실패 (Unauthorized)",
+            content = @Content(mediaType = "application/json",
+                examples = @ExampleObject(value = "{\n  \"error\": \"Invalid credentials\"\n}")))
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials, HttpSession session, HttpServletResponse response) {
         try {
@@ -117,6 +143,15 @@ public class AuthController {
         }
     }
 
+    @Operation(
+        summary = "로그아웃 (Logout)",
+        description = "현재 세션을 로그아웃합니다.\nLogout current session.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "로그아웃 성공 (Success)"),
+        @ApiResponse(responseCode = "500", description = "서버 오류 (Server error)",
+            content = @Content(mediaType = "application/json",
+                examples = @ExampleObject(value = "{\n  \"error\": \"An error occurred during logout\"\n}")))
+    })
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpSession session) {
         try {
@@ -134,6 +169,17 @@ public class AuthController {
         }
     }
 
+    @Operation(
+        summary = "인증 상태 확인 (Check Auth)",
+        description = "현재 세션의 인증 상태를 확인합니다.\nCheck authentication status of current session.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "인증됨 (Authenticated)",
+            content = @Content(mediaType = "application/json",
+                examples = @ExampleObject(value = "{\n  \"username\": \"testadmin\",\n  \"role\": \"ROLE_ADMIN\",\n  \"authenticated\": true\n}"))),
+        @ApiResponse(responseCode = "401", description = "미인증 (Not authenticated)",
+            content = @Content(mediaType = "application/json",
+                examples = @ExampleObject(value = "{\n  \"error\": \"Not authenticated\"\n}")))
+    })
     @GetMapping("/check")
     public ResponseEntity<?> checkAuth(HttpSession session) {
         try {
