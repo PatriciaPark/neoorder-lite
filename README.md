@@ -38,7 +38,7 @@ Designed for API testing, frontend integration, portfolio demonstrations, and mo
 - ❌ 주문 삭제 | Delete order
 - 📊 주문 통계 및 차트 | Order statistics and charts (`/statistics.html`)
 - 🌐 REST API 제공 | REST endpoints under `/api/orders`
-- 📚 Swagger UI 문서 | API documentation (`/swagger-ui/index.html`)
+- 📚 Swagger UI 문서 | Public API documentation (`/swagger-ui/index.html`)
 - 🌍 다국어 지원 (한국어/영어) | Multi-language support (Korean/English)
 
 ---
@@ -52,8 +52,8 @@ GET     /api/orders/status/{status} # 상태별 조회
 POST    /api/orders                 # 주문 등록
 PUT     /api/orders/{id}/status     # 상태 변경
 DELETE  /api/orders/{id}            # 주문 삭제
-GET     /api/statistics            # 주문 통계 조회
-GET     /swagger-ui/index.html     # API 문서
+GET     /api/statistics             # 주문 통계 조회
+GET     /swagger-ui/index.html      # API 문서
 ```
 
 ---

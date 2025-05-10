@@ -28,18 +28,26 @@ const auth = {
 
     // Update UI based on authentication state
     updateUI() {
-        const headerNav = document.getElementById('auth-nav');
-        if (!headerNav) {
-            console.warn('Header navigation element not found');
+        const authNav = document.getElementById('auth-nav');
+        if (!authNav) {
+            console.warn('Auth navigation element not found');
             return;
         }
 
-        // 헤더 메뉴 업데이트
-        if (this.currentUser) {
-            headerNav.innerHTML = `<div class="user-menu"><div class="user-id"><i class="material-icons">person</i>${this.currentUser}</div><a href="javascript:void(0)" class="logout-text" onclick="auth.logout()">${i18n.getTranslation('auth.logout')}</a></div>`;
+        if (this.isLoggedIn()) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            authNav.innerHTML = `
+                <div class="user-menu">
+                    <span class="user-name">${user.username}</span>
+                    <button onclick="auth.logout()" data-i18n="auth.logout">로그아웃</button>
+                </div>
+            `;
         } else {
-            headerNav.innerHTML = `<a href="login.html" class="logout-text">${i18n.getTranslation('auth.login')}</a>`;
+            authNav.innerHTML = `
+                <button onclick="location.href='login.html'" data-i18n="auth.login">로그인</button>
+            `;
         }
+        i18n.updateTexts();
 
         // Dispatch auth state change event
         document.dispatchEvent(new CustomEvent('authStateChanged', {
@@ -53,23 +61,23 @@ const auth = {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/json'
                 },
-                credentials: 'include',
                 body: JSON.stringify({ username, password })
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                this.currentUser = data.username;
-                this.currentRole = data.role;
-                this.updateUI();
-                return true;
-            } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Login failed');
+            if (!response.ok) {
+                throw new Error('Login failed');
             }
+
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            this.currentUser = data.user.username;
+            
+            // Update UI and redirect
+            this.updateUI();
+            window.location.href = 'index.html';
         } catch (error) {
             console.error('Login error:', error);
             throw error;
@@ -77,59 +85,40 @@ const auth = {
     },
 
     // Handle logout
-    async logout() {
-        try {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json'
-                },
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                this.currentUser = null;
-                this.currentRole = null;
-                this.updateUI();
-                window.location.href = 'index.html';
-            } else {
-                throw new Error('Logout failed');
-            }
-        } catch (error) {
-            console.error('Logout error:', error);
-            alert(i18n.getTranslation('error.logout'));
-        }
+    logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.currentUser = null;
+        this.updateUI();
+        window.location.href = 'login.html';
     },
 
     // Check session status
     async checkSession() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.currentUser = null;
+            this.updateUI();
+            return;
+        }
+
         try {
             const response = await fetch('/api/auth/check', {
-                method: 'GET',
                 headers: {
-                    'Accept': 'application/json'
-                },
-                credentials: 'include'
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                this.currentUser = data.username;
-                this.currentRole = data.role;
-                this.updateUI();
-                return true;
-            } else {
-                this.currentUser = null;
-                this.currentRole = null;
-                this.updateUI();
-                return false;
+            if (!response.ok) {
+                throw new Error('Session invalid');
             }
+
+            const data = await response.json();
+            this.currentUser = data.username;
+            this.updateUI();
         } catch (error) {
             console.error('Session check error:', error);
-            this.currentUser = null;
-            this.currentRole = null;
-            this.updateUI();
-            return false;
+            this.logout();
         }
     }
 };
