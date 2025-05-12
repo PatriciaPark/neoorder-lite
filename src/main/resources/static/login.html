@@ -9,6 +9,7 @@
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/auth.js"></script>
+    <link rel="stylesheet" href="style.css">
     <style>
         .login-container {
             display: flex;
@@ -42,6 +43,20 @@
     </style>
 </head>
 <body>
+    <nav class="main-nav">
+        <div class="logo" onclick="location.href='index.html'">📦 NeoOrder Lite</div>
+        <ul class="menu">
+            <li onclick="location.href='index.html'" data-i18n="nav.home">홈</li>
+            <li onclick="location.href='orders.html'" data-i18n="nav.orders">주문 목록</li>
+            <li onclick="handleProtectedLink('statistics.html')" data-i18n="nav.statistics">통계</li>
+            <li id="swagger-link" onclick="window.open('/swagger-ui/index.html', '_blank')" data-i18n="nav.swagger">API 문서</li>
+        </ul>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <nav id="auth-nav"></nav>
+            <button class="lang-btn" onclick="i18n.changeLang('ko')">🇰🇷</button>
+            <button class="lang-btn" onclick="i18n.changeLang('en')">🇺🇸</button>
+        </div>
+    </nav>
     <div class="login-container">
         <div class="mdl-card mdl-shadow--2dp login-card">
             <div class="login-title">

@@ -45,6 +45,11 @@ body {
   justify-content: flex-end;
 }
 
+.user-name {
+  color: #222;
+  font-weight: 500;
+}
+
 .user-id {
   display: flex;
   align-items: center;
@@ -59,21 +64,24 @@ body {
   color: #1da1f2;
 }
 
-a.logout-text {
-  color: #888 !important;
+.user-menu button {
+  background: #03A9F4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: bold;
   cursor: pointer;
-  transition: color 0.2s;
-  font-size: 0.95em;
-  text-decoration: none !important;
-  outline: none;
+  transition: background 0.2s;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
-  vertical-align: middle;
+  gap: 8px;
+  font-size: 1em;
 }
 
-a.logout-text:hover {
-  color: #1da1f2 !important;
-  text-decoration: underline !important;
+.user-menu button:hover {
+  background: linear-gradient(90deg, #3ed2f0 0%, #03a9f4 100%);
 }
 
 /* 메인 배너 */
@@ -320,7 +328,27 @@ canvas { display: block; max-height: 300px; }
   margin: 30px 0 80px 0;
 }
 
-.menu-btn, .user-menu button {
+.menu-btn {
+  background: #03A9F4 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 1em !important;
+}
+
+.menu-btn:hover {
+  background: linear-gradient(90deg, #3ed2f0 0%, #03a9f4 100%) !important;
+}
+
+.user-menu button {
     background: none;
     border: none;
     color: #fff;
@@ -330,6 +358,6 @@ canvas { display: block; max-height: 300px; }
     transition: background 0.2s;
     border-radius: 4px;
 }
-.menu-btn:hover, .user-menu button:hover {
+.user-menu button:hover {
     background: rgba(255,255,255,0.1);
 } 

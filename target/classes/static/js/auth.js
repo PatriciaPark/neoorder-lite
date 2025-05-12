@@ -38,6 +38,7 @@ const auth = {
             const user = JSON.parse(localStorage.getItem('user'));
             authNav.innerHTML = `
                 <div class="user-menu">
+                    <i class="material-icons" style="vertical-align: middle; color: #1da1f2;">person</i>
                     <span class="user-name">${user.username}</span>
                     <button class="menu-btn" onclick="auth.logout()" data-i18n="auth.logout">로그아웃</button>
                 </div>
@@ -106,7 +107,8 @@ const auth = {
     // Check session status
     async checkSession() {
         const token = localStorage.getItem('token');
-        if (!token) {
+        const user = localStorage.getItem('user');
+        if (!token || !user) {
             this.currentUser = null;
             this.updateUI();
             return;
