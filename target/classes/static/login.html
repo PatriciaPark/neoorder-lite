@@ -124,6 +124,15 @@
         document.addEventListener('languageChanged', () => {
             i18n.updateTexts();
         });
+
+        // 상단 메뉴에서 사용하는 handleProtectedLink 함수 추가
+        function handleProtectedLink(url) {
+            if (auth.isLoggedIn()) {
+                window.location.href = url;
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
     </script>
 </body>
 </html>
