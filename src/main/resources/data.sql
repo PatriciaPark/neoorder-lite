@@ -35,5 +35,5 @@ INSERT INTO orders (item, customer_name, status, created_at) VALUES ('SAP ERP Li
 
 -- 초기 관리자 사용자 추가 (비밀번호: admin)
 MERGE INTO users (id, username, password, role, created_at, updated_at)
-VALUES (1, 'admin', '$2a$10$rDkPvvAFV6GgJjXp5GzQeO5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQ', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+VALUES (1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
