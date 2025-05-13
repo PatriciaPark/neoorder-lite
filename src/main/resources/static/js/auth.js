@@ -59,11 +59,12 @@ const auth = {
     // Handle login
     async login(username, password) {
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('https://neoorder-lite.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({ username, password })
             });
 
@@ -96,7 +97,15 @@ const auth = {
     },
 
     // Handle logout
-    logout() {
+    async logout() {
+        try {
+            await fetch('https://neoorder-lite.onrender.com/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         this.currentUser = null;
@@ -115,10 +124,11 @@ const auth = {
         }
 
         try {
-            const response = await fetch('/api/auth/check', {
+            const response = await fetch('https://neoorder-lite.onrender.com/api/auth/check', {
                 headers: {
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                credentials: 'include'
             });
 
             if (!response.ok) {

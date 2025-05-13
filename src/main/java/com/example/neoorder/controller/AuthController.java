@@ -71,6 +71,11 @@ public class AuthController {
             logger.info("Login attempt for user: {}", username);
             logger.debug("Session ID before authentication: {}", session.getId());
             logger.debug("Received credentials - username: {}, password length: {}", username, password != null ? password.length() : 0);
+            logger.debug("Request headers: {}", response.getHeaderNames().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                    name -> name,
+                    name -> response.getHeader(name)
+                )));
 
             if (username == null || password == null) {
                 logger.warn("Login failed: username or password is null");
@@ -126,6 +131,11 @@ public class AuthController {
                     session.getAttribute("username"),
                     session.getAttribute("role"),
                     session.getAttribute("authenticated"));
+                logger.info("Response headers: {}", response.getHeaderNames().stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                        name -> name,
+                        name -> response.getHeader(name)
+                    )));
 
                 Map<String, Object> responseBody = new HashMap<>();
                 responseBody.put("token", token);
