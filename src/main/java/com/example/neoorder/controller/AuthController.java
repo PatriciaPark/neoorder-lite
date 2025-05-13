@@ -21,6 +21,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import com.example.neoorder.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,8 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final SessionRegistry sessionRegistry;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public AuthController(AuthenticationManager authenticationManager, SessionRegistry sessionRegistry) {
         this.authenticationManager = authenticationManager;
@@ -111,6 +115,9 @@ public class AuthController {
                 response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
                 response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me");
 
+                // JWT 토큰 발급
+                String token = jwtUtil.generateToken(username);
+
                 logger.info("Login successful for user: {}", username);
                 logger.info("Session ID: {}", session.getId());
                 logger.info("Authentication: {}", authentication);
@@ -121,7 +128,8 @@ public class AuthController {
                     session.getAttribute("authenticated"));
 
                 Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put("username", username);
+                responseBody.put("token", token);
+                responseBody.put("user", Map.of("username", username));
                 responseBody.put("role", authentication.getAuthorities().iterator().next().getAuthority());
                 responseBody.put("sessionId", session.getId());
                 responseBody.put("authenticated", true);
