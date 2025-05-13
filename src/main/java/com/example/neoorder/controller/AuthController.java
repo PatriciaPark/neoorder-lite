@@ -122,10 +122,6 @@ public class AuthController {
                 // Add session to registry
                 sessionRegistry.registerNewSession(session.getId(), authentication.getPrincipal());
 
-                // Set response headers for CORS
-                response.setHeader("Access-Control-Allow-Credentials", "true");
-                response.setHeader("Access-Control-Allow-Origin", "https://neoorder-lite.onrender.com");
-
                 // Generate JWT token
                 String token = jwtUtil.generateToken(username);
                 logger.debug("JWT token generated for user: {}", username);

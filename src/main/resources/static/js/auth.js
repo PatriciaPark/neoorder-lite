@@ -68,16 +68,22 @@ const auth = {
                 body: JSON.stringify({ username, password })
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                console.error('Failed to parse response:', e);
+                throw new Error('서버 응답을 처리할 수 없습니다.');
+            }
             
             if (!response.ok) {
                 console.error('Login failed:', {
                     status: response.status,
                     statusText: response.statusText,
-                    error: data.error,
-                    details: data.details
+                    error: data?.error || 'Unknown error',
+                    details: data?.details || 'No details available'
                 });
-                throw new Error(data.error || 'Login failed');
+                throw new Error(data?.error || '로그인에 실패했습니다.');
             }
 
             let userObj = null;
@@ -109,7 +115,16 @@ const auth = {
                 stack: error.stack,
                 name: error.name
             });
-            alert(error.message || '로그인에 실패했습니다. 아이디/비밀번호를 확인하세요.');
+            
+            // Show user-friendly error message
+            let errorMessage = '로그인에 실패했습니다.';
+            if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
+                errorMessage = '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.';
+            } else if (error.message.includes('서버 응답')) {
+                errorMessage = error.message;
+            }
+            
+            alert(errorMessage);
         }
     },
 
