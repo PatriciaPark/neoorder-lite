@@ -34,6 +34,6 @@ INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Salesforce
 INSERT INTO orders (item, customer_name, status, created_at) VALUES ('SAP ERP License Renewal', 'Sungil Logistics Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP);
 
 -- 초기 관리자 사용자 추가 (비밀번호: admin)
-MERGE INTO users (username, password, role, created_at, updated_at)
-VALUES ('admin', '$2a$10$rDkPvvAFV6GgJjXp5GzQeO5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQ', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+MERGE INTO users (id, username, password, role, created_at, updated_at)
+VALUES (1, 'admin', '$2a$10$rDkPvvAFV6GgJjXp5GzQeO5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQ', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
