@@ -33,7 +33,8 @@ INSERT INTO orders (item, customer_name, status, created_at) VALUES ('WRMS Renta
 INSERT INTO orders (item, customer_name, status, created_at) VALUES ('Salesforce Integration Request', 'Haneul IT Co., Ltd.', 'SHIPPING', CURRENT_TIMESTAMP - INTERVAL '23' HOUR);
 INSERT INTO orders (item, customer_name, status, created_at) VALUES ('SAP ERP License Renewal', 'Sungil Logistics Co., Ltd.', 'COMPLETED', CURRENT_TIMESTAMP - INTERVAL '24' HOUR);
 
--- admin 계정 생성 (비밀번호: admin, BCrypt 해시)
-INSERT INTO users (username, password, role) VALUES
-('admin', '$2a$10$Dow1v6QwQwQwQwQwQwQwQOQwQwQwQwQwQwQwQwQwQwQwQwQwQw', 'ROLE_ADMIN');
+-- 초기 관리자 사용자 추가 (비밀번호: admin)
+INSERT INTO users (username, password, role)
+VALUES ('admin', '$2a$10$rDkPvvAFV6GgJjXp5GzQeO5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQZ5YQ', 'ADMIN')
+ON DUPLICATE KEY UPDATE username = username;
 
