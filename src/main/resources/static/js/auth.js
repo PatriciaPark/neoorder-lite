@@ -68,11 +68,18 @@ const auth = {
                 body: JSON.stringify({ username, password })
             });
 
+            const data = await response.json();
+            
             if (!response.ok) {
-                throw new Error('Login failed');
+                console.error('Login failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: data.error,
+                    details: data.details
+                });
+                throw new Error(data.error || 'Login failed');
             }
 
-            const data = await response.json();
             let userObj = null;
             if (data.user && data.user.username) {
                 userObj = data.user;
@@ -81,9 +88,15 @@ const auth = {
                 userObj = { username: data.username };
                 this.currentUser = data.username;
             } else {
-                alert('서버 응답에 사용자 정보가 없습니다.');
-                return;
+                console.error('Invalid server response:', data);
+                throw new Error('서버 응답에 사용자 정보가 없습니다.');
             }
+
+            if (!data.token) {
+                console.error('No token in response:', data);
+                throw new Error('서버 응답에 토큰이 없습니다.');
+            }
+
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(userObj));
 
@@ -91,8 +104,12 @@ const auth = {
             this.updateUI();
             window.location.href = 'index.html';
         } catch (error) {
-            console.error('Login error:', error);
-            alert('로그인에 실패했습니다. 아이디/비밀번호를 확인하세요.');
+            console.error('Login error:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            alert(error.message || '로그인에 실패했습니다. 아이디/비밀번호를 확인하세요.');
         }
     },
 
