@@ -101,9 +101,9 @@ public class AuthController {
                 sessionCookie.setPath("/");
                 sessionCookie.setHttpOnly(true);
                 sessionCookie.setMaxAge(-1); // Session cookie
-                sessionCookie.setDomain("localhost");
+                sessionCookie.setDomain("neoorder-lite.onrender.com");
                 sessionCookie.setComment("NeoOrder Session Cookie");
-                sessionCookie.setSecure(false); // For local development
+                sessionCookie.setSecure(true); // Required for HTTPS
                 response.addCookie(sessionCookie);
 
                 // Add session to registry
@@ -111,9 +111,9 @@ public class AuthController {
 
                 // Set response headers for CORS
                 response.setHeader("Access-Control-Allow-Credentials", "true");
-                response.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+                response.setHeader("Access-Control-Allow-Origin", "https://neoorder-lite.onrender.com");
                 response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-                response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me");
+                response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me, Authorization");
 
                 // JWT 토큰 발급
                 String token = jwtUtil.generateToken(username);
