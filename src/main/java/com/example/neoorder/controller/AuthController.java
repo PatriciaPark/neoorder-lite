@@ -148,16 +148,16 @@ public class AuthController {
             } catch (AuthenticationException e) {
                 logger.error("Authentication failed for user {}: {}", username, e.getMessage(), e);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid credentials"));
+                    .body(Map.of("error", "Invalid credentials", "details", e.getMessage()));
             } catch (Exception e) {
                 logger.error("Unexpected error during authentication for user {}: {}", username, e.getMessage(), e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "An unexpected error occurred during authentication"));
+                    .body(Map.of("error", "An unexpected error occurred during authentication", "details", e.getMessage()));
             }
         } catch (Exception e) {
             logger.error("Unexpected error during login: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "An unexpected error occurred during login"));
+                .body(Map.of("error", "An unexpected error occurred during login", "details", e.getMessage()));
         }
     }
 
