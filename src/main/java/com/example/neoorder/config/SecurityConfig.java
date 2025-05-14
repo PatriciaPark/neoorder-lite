@@ -39,17 +39,55 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        logger.info("Configuring security filter chain...");
+        
         http
-            .cors().configurationSource(corsConfigurationSource())
-            .and()
-            .csrf().disable()
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .securityContext(context -> context
+                .securityContextRepository(securityContextRepository())
+                .requireExplicitSave(true)
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+                .expiredUrl("/login.html")
+                .sessionRegistry(sessionRegistry())
+            )
             .authorizeHttpRequests(auth -> auth
+                // Allow static resources
+                .requestMatchers(
+                    "/",
+                    "/index.html",
+                    "/login.html",
+                    "/orders.html",
+                    "/style.css",
+                    "/js/**",
+                    "/css/**",
+                    "/images/**",
+                    "/*.ico",
+                    "/favicon.ico",
+                    "/error"
+                ).permitAll()
+                // Allow authentication endpoints
                 .requestMatchers("/api/auth/**").permitAll()
+                // Allow H2 console
                 .requestMatchers("/h2-console/**").permitAll()
+                // Require authentication for all other requests
                 .anyRequest().authenticated()
             )
-            .headers().frameOptions().disable(); // For H2 console
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.disable()) // For H2 console
+            )
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint((request, response, authException) -> {
+                    logger.warn("Unauthorized access attempt: {}", request.getRequestURI());
+                    response.sendRedirect("/login.html");
+                })
+            );
 
+        logger.info("Security filter chain configured successfully");
         return http.build();
     }
 
@@ -74,15 +112,30 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        logger.info("Configuring CORS...");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("https://neoorder-lite.onrender.com"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Accept", "X-Requested-With", "Authorization", "remember-me"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Content-Type",
+            "Accept",
+            "X-Requested-With",
+            "Authorization",
+            "remember-me",
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Credentials"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+        logger.info("CORS configuration completed");
         return source;
     }
 
