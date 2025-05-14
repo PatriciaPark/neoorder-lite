@@ -117,7 +117,7 @@ public class AuthController {
                 sessionCookie.setDomain("neoorder-lite.onrender.com");
                 sessionCookie.setComment("NeoOrder Session Cookie");
                 sessionCookie.setSecure(true); // Required for HTTPS
-                response.addCookie(sessionCookie);
+                // response.addCookie(sessionCookie); // Temporarily commented out for testing Vary header issue
 
                 // Add session to registry
                 sessionRegistry.registerNewSession(session.getId(), authentication.getPrincipal());
