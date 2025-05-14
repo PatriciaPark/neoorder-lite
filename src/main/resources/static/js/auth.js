@@ -63,23 +63,20 @@ const auth = {
             const response = await fetch('https://neoorder-lite.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify({ username, password })
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', [...response.headers.entries()]);
-
             let data;
+            const textResponse = await response.text();
+            console.log('Raw response:', textResponse);
+            
             try {
-                const textResponse = await response.text();
-                console.log('Raw response:', textResponse);
                 data = textResponse ? JSON.parse(textResponse) : {};
             } catch (e) {
-                console.error('Failed to parse response:', e);
+                console.error('Failed to parse response:', textResponse);
                 throw new Error('서버 응답을 처리할 수 없습니다.');
             }
             
@@ -87,25 +84,10 @@ const auth = {
                 console.error('Login failed:', {
                     status: response.status,
                     statusText: response.statusText,
-                    error: data?.error || 'Unknown error',
-                    details: data?.details || 'No details available',
-                    headers: [...response.headers.entries()]
+                    error: data?.error,
+                    details: data?.details
                 });
                 throw new Error(data?.error || '로그인에 실패했습니다.');
-            }
-
-            console.log('Login successful:', data);
-
-            let userObj = null;
-            if (data.user && data.user.username) {
-                userObj = data.user;
-                this.currentUser = data.user.username;
-            } else if (data.username) {
-                userObj = { username: data.username };
-                this.currentUser = data.username;
-            } else {
-                console.error('Invalid server response:', data);
-                throw new Error('서버 응답에 사용자 정보가 없습니다.');
             }
 
             if (!data.token) {
@@ -113,8 +95,18 @@ const auth = {
                 throw new Error('서버 응답에 토큰이 없습니다.');
             }
 
+            if (!data.username && (!data.user || !data.user.username)) {
+                console.error('No username in response:', data);
+                throw new Error('서버 응답에 사용자 정보가 없습니다.');
+            }
+
+            // Store user data
+            const userObj = data.user || { username: data.username };
+            this.currentUser = userObj.username;
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(userObj));
+
+            console.log('Login successful:', { username: userObj.username });
 
             // Update UI and redirect
             this.updateUI();
@@ -123,16 +115,16 @@ const auth = {
             console.error('Login error:', {
                 message: error.message,
                 stack: error.stack,
-                name: error.name,
-                type: error.constructor.name
+                name: error.name
             });
             
-            // Show user-friendly error message
-            let errorMessage = '로그인에 실패했습니다.';
+            let errorMessage;
             if (error.message.includes('서버 응답')) {
                 errorMessage = error.message;
-            } else if (error.message.includes('NetworkError') || error.name === 'TypeError') {
+            } else if (error.name === 'TypeError') {
                 errorMessage = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
+            } else {
+                errorMessage = '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.';
             }
             
             alert(errorMessage);
