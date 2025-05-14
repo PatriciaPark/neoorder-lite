@@ -1,6 +1,5 @@
 com\example\neoorder\config\SecurityConfig.class
 com\example\neoorder\repository\UserRepository.class
-com\example\neoorder\config\CorsConfig.class
 com\example\neoorder\NeoorderLiteApplication.class
 com\example\neoorder\config\JpaConfig.class
 com\example\neoorder\model\User.class

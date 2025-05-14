@@ -3,7 +3,6 @@ C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\model\User.java
 C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\controller\StatisticsController.java
 C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\model\OrderStatus.java
 C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\NeoorderLiteApplication.java
-C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\config\CorsConfig.java
 C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\repository\OrderRepository.java
 C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\config\JpaConfig.java
 C:\workspace\neoorder-lite\src\main\java\com\example\neoorder\model\Order.java

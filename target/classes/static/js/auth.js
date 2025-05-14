@@ -64,11 +64,9 @@ const auth = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Origin': 'https://neoorder-lite.onrender.com'
+                    'Accept': 'application/json'
                 },
                 credentials: 'include',
-                mode: 'cors',
                 body: JSON.stringify({ username, password })
             });
 
