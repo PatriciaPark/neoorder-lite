@@ -62,9 +62,11 @@ const auth = {
             const response = await fetch('https://neoorder-lite.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 credentials: 'include',
+                mode: 'cors',
                 body: JSON.stringify({ username, password })
             });
 

@@ -38,70 +38,18 @@ public class SecurityConfig {
     private CustomUserDetailsService userDetailsService;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        logger.info("Configuring security filter chain...");
-        
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .securityContext(context -> context
-                .securityContextRepository(securityContextRepository())
-                .requireExplicitSave(true)
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-                .expiredUrl("/login.html")
-                .sessionRegistry(sessionRegistry())
-            )
+            .cors().configurationSource(corsConfigurationSource())
+            .and()
+            .csrf().disable()
             .authorizeHttpRequests(auth -> auth
-                // 정적 리소스 및 기본 페이지 접근 허용
-                .requestMatchers(
-                    "/", 
-                    "/index.html", 
-                    "/login.html", 
-                    "/orders.html",
-                    "/style.css",
-                    "/js/**", 
-                    "/css/**", 
-                    "/images/**", 
-                    "/*.ico", 
-                    "/favicon.ico",
-                    "/error",
-                    "/swagger-ui/**", 
-                    "/v3/api-docs/**",
-                    "/h2-console/**"
-                ).permitAll()
-                // 인증 관련 API 접근 허용
-                .requestMatchers(
-                    "/api/auth/login",
-                    "/api/auth/check",
-                    "/api/auth/logout"
-                ).permitAll()
-                // 주문 조회 API 접근 허용
-                .requestMatchers(HttpMethod.GET,
-                    "/api/orders",
-                    "/api/orders/status/*"
-                ).permitAll()
-                // 주문 수정/삭제는 관리자만 허용
-                .requestMatchers(
-                    "/api/orders/*/status",
-                    "/api/orders/*/cancel",
-                    "/api/orders/*/duplicate"
-                ).hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/orders/*").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/orders/*").hasRole("ADMIN")
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
-            .exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, authException) -> {
-                response.sendRedirect("/index.html");
-            }));
+            .headers().frameOptions().disable(); // For H2 console
 
-        logger.info("Security filter chain configured successfully");
         return http.build();
     }
 
@@ -126,31 +74,10 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        logger.info("Configuring CORS...");
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:8080", 
-            "http://127.0.0.1:8080",
-            "https://neoorder-lite.onrender.com"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers",
-            "X-XSRF-TOKEN",
-            "Cookie"
-        ));
-        configuration.setExposedHeaders(Arrays.asList(
-            "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Credentials",
-            "Set-Cookie",
-            "X-XSRF-TOKEN"
-        ));
+        configuration.setAllowedOrigins(Arrays.asList("https://neoorder-lite.onrender.com"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Accept", "X-Requested-With", "Authorization", "remember-me"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
