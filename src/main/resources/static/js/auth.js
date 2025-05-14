@@ -59,20 +59,27 @@ const auth = {
     // Handle login
     async login(username, password) {
         try {
+            console.log('Attempting login for user:', username);
             const response = await fetch('https://neoorder-lite.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Origin': 'https://neoorder-lite.onrender.com'
                 },
                 credentials: 'include',
                 mode: 'cors',
                 body: JSON.stringify({ username, password })
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', [...response.headers.entries()]);
+
             let data;
             try {
-                data = await response.json();
+                const textResponse = await response.text();
+                console.log('Raw response:', textResponse);
+                data = textResponse ? JSON.parse(textResponse) : {};
             } catch (e) {
                 console.error('Failed to parse response:', e);
                 throw new Error('서버 응답을 처리할 수 없습니다.');
@@ -83,10 +90,13 @@ const auth = {
                     status: response.status,
                     statusText: response.statusText,
                     error: data?.error || 'Unknown error',
-                    details: data?.details || 'No details available'
+                    details: data?.details || 'No details available',
+                    headers: [...response.headers.entries()]
                 });
                 throw new Error(data?.error || '로그인에 실패했습니다.');
             }
+
+            console.log('Login successful:', data);
 
             let userObj = null;
             if (data.user && data.user.username) {
@@ -115,15 +125,16 @@ const auth = {
             console.error('Login error:', {
                 message: error.message,
                 stack: error.stack,
-                name: error.name
+                name: error.name,
+                type: error.constructor.name
             });
             
             // Show user-friendly error message
             let errorMessage = '로그인에 실패했습니다.';
-            if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
-                errorMessage = '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.';
-            } else if (error.message.includes('서버 응답')) {
+            if (error.message.includes('서버 응답')) {
                 errorMessage = error.message;
+            } else if (error.message.includes('NetworkError') || error.name === 'TypeError') {
+                errorMessage = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
             }
             
             alert(errorMessage);
