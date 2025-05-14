@@ -23,19 +23,6 @@ public class WebConfig implements WebMvcConfigurer {
             public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
                 logger.debug("Processing request: {} {}", request.getMethod(), request.getRequestURI());
                 
-                // Remove any existing Vary headers to prevent conflicts
-                response.setHeader("Vary", null);
-                
-                // Set CORS headers
-                String origin = request.getHeader("Origin");
-                if (origin != null && origin.equals("https://neoorder-lite.onrender.com")) {
-                    response.setHeader("Access-Control-Allow-Origin", origin);
-                    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-                    response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
-                    response.setHeader("Access-Control-Allow-Credentials", "true");
-                    response.setHeader("Access-Control-Max-Age", "3600");
-                }
-
                 // Handle preflight requests
                 if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
                     response.setStatus(HttpServletResponse.SC_OK);

@@ -23,6 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import com.example.neoorder.service.CustomUserDetailsService;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -39,6 +43,7 @@ public class SecurityConfig {
         
         http
             .csrf().disable()
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .securityContext(context -> context
                 .securityContextRepository(securityContextRepository())
                 .requireExplicitSave(true)
@@ -127,5 +132,19 @@ public class SecurityConfig {
         AuthenticationManager manager = authenticationConfiguration.getAuthenticationManager();
         logger.info("Authentication manager created: {}", manager);
         return manager;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("https://neoorder-lite.onrender.com"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Accept", "Authorization", "X-Requested-With", "Origin"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); //1 hour
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        logger.info("CORS configuration initialized for origin: https://neoorder-lite.onrender.com");
+        return source;
     }
 }
