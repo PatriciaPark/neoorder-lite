@@ -22,14 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
             @Override
             public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
                 logger.debug("Processing request: {} {}", request.getMethod(), request.getRequestURI());
-                
-                // Handle preflight requests
-                if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    return false;
-                }
-
-                logger.debug("Request processed successfully");
+                logger.debug("Request processed successfully, allowing further processing by Spring Security filters.");
                 return true;
             }
         }).order(Ordered.HIGHEST_PRECEDENCE);

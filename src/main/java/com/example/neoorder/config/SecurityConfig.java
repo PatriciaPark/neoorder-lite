@@ -27,12 +27,20 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.http.MediaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+    private final ObjectMapper objectMapper = new ObjectMapper(); // For JSON responses
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
@@ -81,10 +89,7 @@ public class SecurityConfig {
                 .frameOptions(frame -> frame.disable()) // For H2 console
             )
             .exceptionHandling(exception -> exception
-                .authenticationEntryPoint((request, response, authException) -> {
-                    logger.warn("Unauthorized access attempt: {}", request.getRequestURI());
-                    response.sendRedirect("/login.html");
-                })
+                .authenticationEntryPoint(apiOrLoginEntryPoint())
             );
 
         logger.info("Security filter chain configured successfully");
@@ -146,5 +151,24 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         logger.info("CORS configuration initialized for origin: https://neoorder-lite.onrender.com");
         return source;
+    }
+
+    @Bean
+    public AuthenticationEntryPoint apiOrLoginEntryPoint() {
+        return (request, response, authException) -> {
+            if (request.getRequestURI().startsWith("/api/")) {
+                logger.warn("API unauthorized access attempt to {}: {}", request.getRequestURI(), authException.getMessage());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                Map<String, Object> data = new HashMap<>();
+                data.put("error", "Unauthorized");
+                data.put("message", authException.getMessage());
+                data.put("path", request.getRequestURI());
+                response.getOutputStream().println(objectMapper.writeValueAsString(data));
+            } else {
+                logger.warn("Page unauthorized access attempt to {}: {}, redirecting to login.", request.getRequestURI(), authException.getMessage());
+                response.sendRedirect("/login.html");
+            }
+        };
     }
 }
