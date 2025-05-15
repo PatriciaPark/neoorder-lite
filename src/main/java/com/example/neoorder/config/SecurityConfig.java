@@ -158,6 +158,7 @@ public class SecurityConfig {
         // Add specific CORS configuration for session handling
         configuration.addAllowedOriginPattern("http://localhost:8080");
         configuration.addAllowedOriginPattern("http://127.0.0.1:8080");
+        configuration.addAllowedOriginPattern("https://neoorder-lite.onrender.com");
         configuration.addAllowedHeader("Cookie");
         configuration.addExposedHeader("Set-Cookie");
         configuration.setAllowCredentials(true);

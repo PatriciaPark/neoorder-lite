@@ -116,9 +116,11 @@ const auth = {
 
         try {
             const response = await fetch('/api/auth/check', {
+                method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                credentials: 'include'
             });
 
             if (!response.ok) {
