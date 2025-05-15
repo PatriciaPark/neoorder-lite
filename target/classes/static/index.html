@@ -82,13 +82,23 @@
         document.addEventListener('authStateChanged', () => {
             updateSwaggerLink();
         });
-        function handleProtectedLink(url) {
-            if (auth.isLoggedIn()) {
+
+        async function handleProtectedLink(url) {
+            const loggedIn = await auth.isLoggedIn();
+            if (loggedIn) {
                 window.location.href = url;
             } else {
                 window.location.href = 'login.html';
             }
         }
+        
+        //function handleProtectedLink(url) {
+        //    if (auth.isLoggedIn()) {
+        //        window.location.href = url;
+        //    } else {
+        //        window.location.href = 'login.html';
+        //    }
+        //}
 
         // Swagger UI 링크 표시 여부 설정
         function updateSwaggerLink() {

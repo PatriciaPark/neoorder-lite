@@ -4,9 +4,26 @@ const auth = {
     currentRole: null,
 
     // Check if user is logged in
-    isLoggedIn() {
-        return this.currentUser !== null;
-    },
+    // isLoggedIn() {
+    //     return this.currentUser !== null;
+    // },
+    async isLoggedIn() {
+        const token = localStorage.getItem('token');
+        if (!token) return false;
+    
+        try {
+            const res = await fetch('/api/auth/check', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include'
+            });
+            return res.ok;
+        } catch (err) {
+            return false;
+        }
+    },    
 
     // Check if user is admin
     isAdmin() {
@@ -107,13 +124,18 @@ const auth = {
     // Check session status
     async checkSession() {
         const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
-        if (!token || !user) {
+        const userRaw = localStorage.getItem('user');
+    
+        if (!token || !userRaw) {
+            console.warn('No token or user info found');
             this.currentUser = null;
             this.updateUI();
             return;
         }
-
+    
+        const user = JSON.parse(userRaw);
+        this.currentUser = user.username;
+    
         try {
             const response = await fetch('/api/auth/check', {
                 method: 'GET',
@@ -122,19 +144,20 @@ const auth = {
                 },
                 credentials: 'include'
             });
-
+    
             if (!response.ok) {
                 throw new Error('Session invalid');
             }
-
+    
             const data = await response.json();
             this.currentUser = data.username;
-            this.updateUI();
         } catch (error) {
             console.error('Session check error:', error);
-            this.logout();
+            this.logout(); // 토큰 만료 등
+        } finally {
+            this.updateUI(); // 항상 UI는 갱신되도록
         }
-    }
+    }    
 };
 
 // Check authentication on page load
