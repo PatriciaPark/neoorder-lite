@@ -50,9 +50,11 @@ const auth = {
             console.warn('Auth navigation element not found');
             return;
         }
-
-        if (this.isLoggedIn()) {
-            const user = JSON.parse(localStorage.getItem('user'));
+    
+        const userRaw = localStorage.getItem('user');
+        const user = userRaw ? JSON.parse(userRaw) : null;
+    
+        if (this.isLoggedIn() && user) {
             authNav.innerHTML = `
                 <div class="user-menu">
                     <i class="material-icons" style="vertical-align: middle; color: #1da1f2;">person</i>
@@ -65,9 +67,9 @@ const auth = {
                 <button class="menu-btn" onclick="location.href='login.html'" data-i18n="auth.login">로그인</button>
             `;
         }
+    
         i18n.updateTexts();
-
-        // Dispatch auth state change event
+    
         document.dispatchEvent(new CustomEvent('authStateChanged', {
             detail: { isLoggedIn: this.isLoggedIn(), isAdmin: this.isAdmin() }
         }));
@@ -118,7 +120,7 @@ const auth = {
         localStorage.removeItem('user');
         this.currentUser = null;
         this.updateUI();
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
     },
 
     // Check session status

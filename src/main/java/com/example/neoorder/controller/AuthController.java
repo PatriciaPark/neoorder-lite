@@ -102,7 +102,7 @@ public class AuthController {
                 sessionCookie.setPath("/");
                 sessionCookie.setHttpOnly(true);
                 sessionCookie.setMaxAge(-1); // Session cookie
-                sessionCookie.setDomain("localhost");
+                // sessionCookie.setDomain("localhost");
                 sessionCookie.setComment("NeoOrder Session Cookie");
                 sessionCookie.setSecure(false); // For local development
                 response.addCookie(sessionCookie);
