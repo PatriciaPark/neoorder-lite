@@ -6,52 +6,50 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import com.example.neoorder.service.CustomUserDetailsService;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.http.MediaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
-    private final ObjectMapper objectMapper = new ObjectMapper(); // For JSON responses
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
+    @Value("${spring.security.user.name}")
+    private String username;
+
+    @Value("${spring.security.user.password}")
+    private String password;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         logger.info("Configuring security filter chain...");
+        logger.info("Using username: {}", username);
+        logger.info("Using password: {}", password);
         
         http
-            .csrf().disable()
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
             .securityContext(context -> context
                 .securityContextRepository(securityContextRepository())
                 .requireExplicitSave(true)
@@ -64,33 +62,49 @@ public class SecurityConfig {
                 .sessionRegistry(sessionRegistry())
             )
             .authorizeHttpRequests(auth -> auth
-                // Allow static resources
+                // 정적 리소스 및 기본 페이지 접근 허용
                 .requestMatchers(
-                    "/",
-                    "/index.html",
-                    "/login.html",
+                    "/", 
+                    "/index.html", 
+                    "/login.html", 
                     "/orders.html",
                     "/style.css",
-                    "/js/**",
-                    "/css/**",
-                    "/images/**",
-                    "/*.ico",
+                    "/js/**", 
+                    "/css/**", 
+                    "/images/**", 
+                    "/*.ico", 
                     "/favicon.ico",
-                    "/error"
+                    "/error",
+                    "/swagger-ui/**", 
+                    "/v3/api-docs/**"
                 ).permitAll()
-                // Allow authentication endpoints
-                .requestMatchers("/api/auth/**").permitAll()
-                // Allow H2 console
-                .requestMatchers("/h2-console/**").permitAll()
-                // Require authentication for all other requests
+                // 인증 관련 API 접근 허용
+                .requestMatchers(
+                    "/api/auth/login",
+                    "/api/auth/check",
+                    "/api/auth/logout"
+                ).permitAll()
+                // 주문 조회 API 접근 허용
+                .requestMatchers(HttpMethod.GET,
+                    "/api/orders",
+                    "/api/orders/status/*"
+                ).permitAll()
+                // 주문 수정/삭제는 관리자만 허용
+                .requestMatchers(
+                    "/api/orders/*/status",
+                    "/api/orders/*/cancel",
+                    "/api/orders/*/duplicate"
+                ).hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/orders/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/orders/*").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.disable()) // For H2 console
-            )
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(apiOrLoginEntryPoint())
-            );
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, authException) -> {
+                response.sendRedirect("/index.html");
+            }));
 
         logger.info("Security filter chain configured successfully");
         return http.build();
@@ -116,16 +130,63 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public CorsConfigurationSource corsConfigurationSource() {
+        logger.info("Configuring CORS...");
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080", "http://127.0.0.1:8080"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers",
+            "X-XSRF-TOKEN",
+            "Cookie"
+        ));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Credentials",
+            "Set-Cookie",
+            "X-XSRF-TOKEN"
+        ));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        // Add specific CORS configuration for session handling
+        configuration.addAllowedOriginPattern("http://localhost:8080");
+        configuration.addAllowedOriginPattern("http://127.0.0.1:8080");
+        configuration.addAllowedHeader("Cookie");
+        configuration.addExposedHeader("Set-Cookie");
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        logger.info("Creating user details service with username: {}", username);
+        UserDetails user = User.builder()
+                .username(username)
+                .password(password)
+                .roles("ADMIN")
+                .build();
+
+        logger.info("Created user: {}", user.getUsername());
+        logger.info("User details: username={}, roles={}", user.getUsername(), user.getAuthorities());
+        return new InMemoryUserDetailsManager(user);
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         logger.info("Creating authentication provider...");
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setUserDetailsService(userDetailsService());
+        provider.setPasswordEncoder(org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance());
         provider.setHideUserNotFoundExceptions(false);
         logger.info("Authentication provider created successfully");
         return provider;
@@ -137,38 +198,5 @@ public class SecurityConfig {
         AuthenticationManager manager = authenticationConfiguration.getAuthenticationManager();
         logger.info("Authentication manager created: {}", manager);
         return manager;
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://neoorder-lite.onrender.com"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Accept", "Authorization", "X-Requested-With", "Origin"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); //1 hour
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        logger.info("CORS configuration initialized for origin: https://neoorder-lite.onrender.com");
-        return source;
-    }
-
-    @Bean
-    public AuthenticationEntryPoint apiOrLoginEntryPoint() {
-        return (request, response, authException) -> {
-            if (request.getRequestURI().startsWith("/api/")) {
-                logger.warn("API unauthorized access attempt to {}: {}", request.getRequestURI(), authException.getMessage());
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                Map<String, Object> data = new HashMap<>();
-                data.put("error", "Unauthorized");
-                data.put("message", authException.getMessage());
-                data.put("path", request.getRequestURI());
-                response.getOutputStream().println(objectMapper.writeValueAsString(data));
-            } else {
-                logger.warn("Page unauthorized access attempt to {}: {}, redirecting to login.", request.getRequestURI(), authException.getMessage());
-                response.sendRedirect("/login.html");
-            }
-        };
     }
 }

@@ -23,11 +23,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import com.example.neoorder.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.AccountExpiredException;
-import org.springframework.security.authentication.CredentialsExpiredException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,18 +71,10 @@ public class AuthController {
             logger.info("Login attempt for user: {}", username);
             logger.debug("Session ID before authentication: {}", session.getId());
             logger.debug("Received credentials - username: {}, password length: {}", username, password != null ? password.length() : 0);
-            logger.debug("Request headers: {}", response.getHeaderNames().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                    name -> name,
-                    name -> response.getHeader(name)
-                )));
 
             if (username == null || password == null) {
                 logger.warn("Login failed: username or password is null");
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Username and password are required",
-                    "details", "Both username and password must be provided"
-                ));
+                return ResponseEntity.badRequest().body(Map.of("error", "Username and password are required"));
             }
 
             try {
@@ -114,82 +101,53 @@ public class AuthController {
                 sessionCookie.setPath("/");
                 sessionCookie.setHttpOnly(true);
                 sessionCookie.setMaxAge(-1); // Session cookie
-                sessionCookie.setDomain("neoorder-lite.onrender.com");
+                sessionCookie.setDomain("localhost");
                 sessionCookie.setComment("NeoOrder Session Cookie");
-                sessionCookie.setSecure(true); // Required for HTTPS
-                // response.addCookie(sessionCookie); // Temporarily commented out for testing Vary header issue
+                sessionCookie.setSecure(false); // For local development
+                response.addCookie(sessionCookie);
 
                 // Add session to registry
                 sessionRegistry.registerNewSession(session.getId(), authentication.getPrincipal());
 
-                // Generate JWT token
+                // Set response headers for CORS
+                response.setHeader("Access-Control-Allow-Credentials", "true");
+                response.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+                response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me");
+
+                // JWT 토큰 발급
                 String token = jwtUtil.generateToken(username);
-                logger.debug("JWT token generated for user: {}", username);
 
-                // Return success response
-                return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "username", username,
-                    "role", authentication.getAuthorities().iterator().next().getAuthority()
-                ));
+                logger.info("Login successful for user: {}", username);
+                logger.info("Session ID: {}", session.getId());
+                logger.info("Authentication: {}", authentication);
+                logger.info("Authorities: {}", authentication.getAuthorities());
+                logger.info("Session attributes: username={}, role={}, authenticated={}", 
+                    session.getAttribute("username"),
+                    session.getAttribute("role"),
+                    session.getAttribute("authenticated"));
 
-            } catch (BadCredentialsException e) {
-                logger.warn("Invalid credentials for user {}: {}", username, e.getMessage());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                        "error", "Invalid credentials",
-                        "details", "The provided username or password is incorrect"
-                    ));
-            } catch (LockedException e) {
-                logger.warn("Account locked for user {}: {}", username, e.getMessage());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                        "error", "Account locked",
-                        "details", "Your account has been locked. Please contact support."
-                    ));
-            } catch (DisabledException e) {
-                logger.warn("Account disabled for user {}: {}", username, e.getMessage());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                        "error", "Account disabled",
-                        "details", "Your account has been disabled. Please contact support."
-                    ));
-            } catch (AccountExpiredException e) {
-                logger.warn("Account expired for user {}: {}", username, e.getMessage());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                        "error", "Account expired",
-                        "details", "Your account has expired. Please contact support."
-                    ));
-            } catch (CredentialsExpiredException e) {
-                logger.warn("Credentials expired for user {}: {}", username, e.getMessage());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                        "error", "Credentials expired",
-                        "details", "Your credentials have expired. Please reset your password."
-                    ));
+                Map<String, Object> responseBody = new HashMap<>();
+                responseBody.put("token", token);
+                responseBody.put("user", Map.of("username", username));
+                responseBody.put("role", authentication.getAuthorities().iterator().next().getAuthority());
+                responseBody.put("sessionId", session.getId());
+                responseBody.put("authenticated", true);
+                
+                return ResponseEntity.ok(responseBody);
             } catch (AuthenticationException e) {
                 logger.error("Authentication failed for user {}: {}", username, e.getMessage(), e);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                        "error", "Authentication failed",
-                        "details", e.getMessage()
-                    ));
+                    .body(Map.of("error", "Invalid credentials"));
             } catch (Exception e) {
                 logger.error("Unexpected error during authentication for user {}: {}", username, e.getMessage(), e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                        "error", "An unexpected error occurred during authentication",
-                        "details", e.getMessage()
-                    ));
+                    .body(Map.of("error", "An unexpected error occurred during authentication"));
             }
         } catch (Exception e) {
             logger.error("Unexpected error during login: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "error", "An unexpected error occurred during login",
-                    "details", e.getMessage()
-                ));
+                .body(Map.of("error", "An unexpected error occurred during login"));
         }
     }
 

@@ -21,10 +21,40 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new HandlerInterceptor() {
             @Override
             public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                logger.debug("Processing request: {} {}", request.getMethod(), request.getRequestURI());
-                logger.debug("Request processed successfully, allowing further processing by Spring Security filters.");
+                logger.debug("Processing request in WebConfig Interceptor: {} {}", request.getMethod(), request.getRequestURI());
+                
+                // Attempt to clear Vary to avoid conflicts, then set specific CORS headers
+                response.setHeader("Vary", null); 
+                
+                String origin = request.getHeader("Origin");
+                // Only allow your specific frontend origin for localhost and production
+                if (origin != null && (origin.equals("http://localhost:8080") || origin.equals("https://neoorder-lite.onrender.com"))) {
+                    response.setHeader("Access-Control-Allow-Origin", origin);
+                    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                    response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization, X-Requested-With");
+                    response.setHeader("Access-Control-Allow-Credentials", "true");
+                    response.setHeader("Access-Control-Max-Age", "3600");
+                } else if (origin != null) {
+                    logger.debug("Origin {} not explicitly allowed by WebConfig interceptor.", origin);
+                }
+
+                // Handle preflight requests directly in the interceptor
+                if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                    // Ensure CORS headers are set for OPTIONS even if origin check was intermediate
+                    if (origin != null && (origin.equals("http://localhost:8080") || origin.equals("https://neoorder-lite.onrender.com"))) {
+                         // Re-set headers for OPTIONS if they were set above, to be sure
+                        response.setHeader("Access-Control-Allow-Origin", origin);
+                        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization, X-Requested-With");
+                        response.setHeader("Access-Control-Allow-Credentials", "true");
+                        response.setHeader("Access-Control-Max-Age", "3600");
+                    }
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    logger.debug("Preflight OPTIONS request handled by WebConfig Interceptor, sending SC_OK");
+                    return false; // Stop further processing for OPTIONS
+                }
                 return true;
             }
-        }).order(Ordered.HIGHEST_PRECEDENCE);
+        }).order(Ordered.HIGHEST_PRECEDENCE); // Interceptor itself ordered high
     }
 } 
