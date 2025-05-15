@@ -125,8 +125,9 @@
                 placeholder.textContent = '-- 상품을 선택하세요 --';
             }
         }
-        function handleProtectedLink(url) {
-            if (auth.isLoggedIn()) {
+        async function handleProtectedLink(url) {
+            const loggedIn = await auth.isLoggedIn();
+            if (loggedIn) {
                 window.location.href = url;
             } else {
                 window.location.href = 'login.html';

@@ -260,8 +260,9 @@
             i18n.updateTexts();
             loadOrders();
         });
-        function handleProtectedLink(url) {
-            if (auth.isLoggedIn()) {
+        async function handleProtectedLink(url) {
+            const loggedIn = await auth.isLoggedIn();
+            if (loggedIn) {
                 window.location.href = url;
             } else {
                 window.location.href = 'login.html';
