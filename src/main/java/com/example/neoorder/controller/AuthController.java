@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import com.example.neoorder.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -188,33 +189,47 @@ public class AuthController {
             content = @Content(mediaType = "application/json",
                 examples = @ExampleObject(value = "{\n  \"error\": \"Not authenticated\"\n}")))
     })
+    
     @GetMapping("/check")
-    public ResponseEntity<?> checkAuth(HttpSession session) {
-        try {
-            logger.debug("Checking authentication status for session: {}", session.getId());
-            
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.isAuthenticated() && !(authentication.getPrincipal() instanceof String)) {
-                String username = (String) session.getAttribute("username");
-                String role = (String) session.getAttribute("role");
-                
-                logger.info("User is authenticated: username={}, role={}", username, role);
-                
-                Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put("username", username);
-                responseBody.put("role", role);
-                responseBody.put("authenticated", true);
-                
-                return ResponseEntity.ok(responseBody);
-            } else {
-                logger.info("User is not authenticated");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Not authenticated"));
-            }
-        } catch (Exception e) {
-            logger.error("Error checking authentication status: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "An error occurred while checking authentication status"));
+    public ResponseEntity<?> checkAuth(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Not authenticated"));
         }
+
+        return ResponseEntity.ok(Map.of(
+            "username", principal.getName(),
+            "authenticated", true
+        ));
     }
+
+    // @GetMapping("/check")
+    // public ResponseEntity<?> checkAuth(HttpSession session) {
+    //     try {
+    //         logger.debug("Checking authentication status for session: {}", session.getId());
+            
+    //         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    //         if (authentication != null && authentication.isAuthenticated() && !(authentication.getPrincipal() instanceof String)) {
+    //             String username = (String) session.getAttribute("username");
+    //             String role = (String) session.getAttribute("role");
+                
+    //             logger.info("User is authenticated: username={}, role={}", username, role);
+                
+    //             Map<String, Object> responseBody = new HashMap<>();
+    //             responseBody.put("username", username);
+    //             responseBody.put("role", role);
+    //             responseBody.put("authenticated", true);
+                
+    //             return ResponseEntity.ok(responseBody);
+    //         } else {
+    //             logger.info("User is not authenticated");
+    //             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+    //                 .body(Map.of("error", "Not authenticated"));
+    //         }
+    //     } catch (Exception e) {
+    //         logger.error("Error checking authentication status: {}", e.getMessage(), e);
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    //             .body(Map.of("error", "An error occurred while checking authentication status"));
+    //     }
+    // }
 } 

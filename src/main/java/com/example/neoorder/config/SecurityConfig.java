@@ -28,12 +28,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import com.example.neoorder.util.JwtUtil;
+import com.example.neoorder.config.JwtAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
+    private final JwtUtil jwtUtil;
+
+    public SecurityConfig(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Value("${spring.security.user.name}")
     private String username;
@@ -104,7 +113,8 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, authException) -> {
                 response.sendRedirect("/index.html");
-            }));
+            }))
+            .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         logger.info("Security filter chain configured successfully");
         return http.build();
