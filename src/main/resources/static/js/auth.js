@@ -4,9 +4,6 @@ const auth = {
     currentRole: null,
 
     // Check if user is logged in
-    // isLoggedIn() {
-    //     return this.currentUser !== null;
-    // },
     async isLoggedIn() {
         const token = localStorage.getItem('token');
         if (!token) return false;

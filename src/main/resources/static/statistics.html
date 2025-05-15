@@ -42,11 +42,11 @@
                 <span class="material-icons">search</span>
                 <span data-i18n="stats.button.search">조회</span>
             </button>
-            <button class="button-main" onclick="exportToCSV()">
+            <button class="button-main" id="exportCsvButton" onclick="exportToCSV()">
                 <span class="material-icons">file_download</span>
                 <span data-i18n="stats.button.csv">CSV 다운로드</span>
             </button>
-            <button class="button-main" onclick="exportCharts()">
+            <button class="button-main" id="exportChartsButton" onclick="exportCharts()">
                 <span class="material-icons">image</span>
                 <span data-i18n="stats.button.charts">차트 저장</span>
             </button>
@@ -104,7 +104,6 @@
     <script>
         let statusChart = null;
         let popularItemsChart = null;
-        let dateChangeTimer = null;
 
         // 차트 레이블 업데이트
         function updateChartLabels() {
@@ -294,36 +293,34 @@
         }
 
         function handleDateChange() {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
             
             if (startDate && endDate) {
                 if (new Date(startDate) > new Date(endDate)) {
                     alert(i18n.getTranslation('alert.date.invalid'));
-                    document.getElementById('startDate').value = endDate;
-                    return;
+                    endDateInput.value = startDate; 
+                    return; 
                 }
-
-                if (dateChangeTimer) {
-                    clearTimeout(dateChangeTimer);
-                }
-
-                dateChangeTimer = setTimeout(() => {
-                    loadStatistics();
-                }, 500);
             }
         }
 
         async function loadStatistics() {
             const loadingElement = document.getElementById('loading');
-            const contentElement = document.getElementById('statisticsContent');
+            const statsCardsElement = document.querySelector('.stats-cards');
+            const chartsRowElement = document.querySelector('.charts-row');
             const noDataElement = document.getElementById('noData');
             const searchButton = document.getElementById('searchButton');
+            const exportCsvButton = document.getElementById('exportCsvButton');
+            const exportChartsButton = document.getElementById('exportChartsButton');
 
             try {
                 // 로딩 상태 표시
                 if (loadingElement) loadingElement.style.display = 'block';
-                if (contentElement) contentElement.style.opacity = '0.5';
+                if (statsCardsElement) statsCardsElement.style.opacity = '0.5';
+                if (chartsRowElement) chartsRowElement.style.opacity = '0.5';
                 if (searchButton) searchButton.disabled = true;
                 if (noDataElement) noDataElement.style.display = 'none';
 
@@ -355,11 +352,30 @@
 
                 // 데이터가 없는 경우 처리
                 if (data.totalOrders === 0) {
-                    if (contentElement) contentElement.style.display = 'none';
+                    if (statsCardsElement) statsCardsElement.style.display = 'none';
+                    if (chartsRowElement) chartsRowElement.style.display = 'none';
                     if (noDataElement) noDataElement.style.display = 'block';
+                    
+                    if (exportCsvButton) exportCsvButton.disabled = true;
+                    if (exportChartsButton) exportChartsButton.disabled = true;
+
+                    // Create a zeroed-out data object to clear the stats
+                    const emptyData = {
+                        totalOrders: 0,
+                        statusStats: {}, // Empty status map
+                        popularItems: [], // Empty popular items
+                        avgProcessingTime: 0
+                    };
+                    updateStatistics(emptyData);
+                    updateCharts(emptyData);
                 } else {
-                    if (contentElement) contentElement.style.display = 'block';
+                    if (statsCardsElement) statsCardsElement.style.display = 'flex';
+                    if (chartsRowElement) chartsRowElement.style.display = 'flex';
                     if (noDataElement) noDataElement.style.display = 'none';
+
+                    if (exportCsvButton) exportCsvButton.disabled = false;
+                    if (exportChartsButton) exportChartsButton.disabled = false;
+
                     updateStatistics(data);
                     updateCharts(data);
                 }
@@ -368,7 +384,8 @@
             } finally {
                 // 로딩 상태 해제
                 if (loadingElement) loadingElement.style.display = 'none';
-                if (contentElement) contentElement.style.opacity = '1';
+                if (statsCardsElement) statsCardsElement.style.opacity = '1';
+                if (chartsRowElement) chartsRowElement.style.opacity = '1';
                 if (searchButton) searchButton.disabled = false;
             }
         }
@@ -457,18 +474,42 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeCharts();
             
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
             // 기본 날짜 범위 설정
             const defaultRange = getDefaultDateRange();
-            document.getElementById('startDate').value = defaultRange.start;
-            document.getElementById('endDate').value = defaultRange.end;
+            startDateInput.value = defaultRange.start;
+            endDateInput.value = defaultRange.end;
             
+            // 초기 min/max 설정
+            endDateInput.min = startDateInput.value;
+            startDateInput.max = endDateInput.value; // Also ensure startDate doesn't exceed endDate initially
+
             // 초기 데이터 로드
             loadStatistics();
 
             // 날짜 입력 필드에 최대값 설정 (오늘까지만 선택 가능)
             const today = formatDate(new Date());
-            document.getElementById('startDate').max = today;
-            document.getElementById('endDate').max = today;
+            startDateInput.max = today; // This max should be today
+            endDateInput.max = today;   // This max should be today
+
+            // Add event listeners to dynamically update min/max attributes for date inputs
+            startDateInput.addEventListener('change', () => {
+                endDateInput.min = startDateInput.value;
+                if (endDateInput.value < startDateInput.value) {
+                    endDateInput.value = startDateInput.value;
+                }
+                handleDateChange();
+            });
+    
+            endDateInput.addEventListener('change', () => {
+                startDateInput.max = endDateInput.value;
+                if (startDateInput.value > endDateInput.value) {
+                    startDateInput.value = endDateInput.value;
+                }
+                handleDateChange();
+            });
         });
 
         function handleProtectedLink(url) {

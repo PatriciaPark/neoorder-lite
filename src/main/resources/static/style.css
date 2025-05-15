@@ -207,6 +207,20 @@ body {
   background: linear-gradient(90deg, #3ed2f0 0%, #03a9f4 100%);
 }
 
+.search-bar button:disabled,
+.search-bar button:disabled:hover,
+.search-bar a.button:disabled, /* If you have <a> tags styled as buttons that can be 'disabled' (usually via class) */
+.search-bar a.button:disabled:hover {
+  background: #B0BEC5; /* A muted blue-grey, less harsh than #ccc */
+  color: #607D8B;       /* Darker muted text color */
+  cursor: not-allowed;
+  /* Override box-shadow or other effects if they were on hover */
+  box-shadow: none;
+  opacity: 0.6; /* Standard opacity for disabled elements */
+  /* Ensure gradient is removed if it was part of hover */
+  background-image: none;
+}
+
 .order-table {
   width: 100%; max-width: 1100px; margin: 0 auto; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
