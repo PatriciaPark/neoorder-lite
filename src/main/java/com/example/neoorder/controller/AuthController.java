@@ -104,7 +104,7 @@ public class AuthController {
                 sessionCookie.setMaxAge(-1); // Session cookie
                 // sessionCookie.setDomain("localhost");
                 sessionCookie.setComment("NeoOrder Session Cookie");
-                sessionCookie.setSecure(false); // For local development
+                sessionCookie.setSecure(true); // For local development: false
                 response.addCookie(sessionCookie);
 
                 // Add session to registry
@@ -112,7 +112,7 @@ public class AuthController {
 
                 // Set response headers for CORS
                 response.setHeader("Access-Control-Allow-Credentials", "true");
-                response.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+                // response.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
                 response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
                 response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me");
 
