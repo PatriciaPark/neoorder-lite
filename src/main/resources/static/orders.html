@@ -246,10 +246,15 @@
                 alert(error.message);
             }
         }
-        function updateCreateOrderBtn() {
+        
+        async function updateCreateOrderBtn() {
             const btn = document.getElementById('createOrderBtn');
-            if (btn) btn.style.display = auth.isLoggedIn() ? '' : 'none';
+            if (!btn) return;
+        
+            const loggedIn = await auth.isLoggedIn();
+            btn.style.display = loggedIn ? '' : 'none';
         }
+        
         document.addEventListener('DOMContentLoaded', () => {
             i18n.updateTexts();
             loadOrders();
